@@ -2,6 +2,7 @@ import React from "react";
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
+import AuthProvider from "@/context/AuthContext";
 
 // 1. Initialize fonts
 const geistSans = Geist({
@@ -44,7 +45,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       {/* 4. Apply font variables to the body */}
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+        <AuthProvider>
         {children}
+        </AuthProvider>
         <Analytics />
       </body>
     </html>
