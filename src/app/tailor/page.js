@@ -7,6 +7,7 @@ import MeasurementDetails from '@/components/tailor/measurement-details';
 import WorkProgress from '@/components/tailor/work-progress';
 import CompletedGarments from '@/components/tailor/completed-garments';
 
+
 export default function TailorDashboard() {
   return (
     <div className="min-h-screen bg-background">
