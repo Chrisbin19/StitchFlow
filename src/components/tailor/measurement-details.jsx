@@ -3,10 +3,12 @@
 import { useState } from 'react';
 
 export default function MeasurementDetails() {
+  // Initialize state for the new customer fields [cite: 58, 71]
+  const [customerName, setCustomerName] = useState('');
   const [dressType, setDressType] = useState('Shirt');
   const [material, setMaterial] = useState('Cotton');
 
-  // Measurement fields derived from SRS Section 3.5
+  // Measurement fields derived from SRS Section 3.5 [cite: 71]
   const fieldsByDress = {
     Shirt: ['Collar', 'Chest', 'Sleeve', 'Shoulder', 'Length'],
     Pant: ['Waist', 'Hip', 'Inseam', 'Outseam', 'Bottom'],
@@ -23,11 +25,25 @@ export default function MeasurementDetails() {
         <h3 className="font-semibold leading-none tracking-tight text-indigo-900">
           Garment Measurements
         </h3>
-        <p className="text-sm text-muted-foreground">Select type and material to record details[cite: 66, 71].</p>
+        {/* Updated description to include customer tracking [cite: 6, 58] */}
+        <p className="text-sm text-muted-foreground">Enter customer name and garment details to record measurements[cite: 58, 71].</p>
       </div>
 
       <div className="grid gap-4">
-        {/* Selection Row: Dress and Material */}
+        {/* NEW FIELD: Customer Name  */}
+        <div className="space-y-2 mb-2">
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Customer Name</label>
+          <input 
+            type="text"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            placeholder="Enter full name"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus:ring-1 focus:ring-indigo-500 outline-none"
+            required
+          />
+        </div>
+
+        {/* Selection Row: Dress and Material [cite: 63, 66] */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-medium">Dress Type</label>
@@ -51,7 +67,7 @@ export default function MeasurementDetails() {
           </div>
         </div>
 
-        {/* Measurement Inputs Area */}
+        {/* Measurement Inputs Area [cite: 71] */}
         <div className="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100">
           <p className="text-[10px] font-bold text-indigo-700 uppercase mb-4 tracking-wider">
             Required for {dressType}
@@ -81,7 +97,7 @@ export default function MeasurementDetails() {
         </div>
 
         <button className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-indigo-600 text-white shadow hover:bg-indigo-700 h-10 px-4 py-2 transition-colors">
-          Save Measurements [cite: 71]
+          Save for {customerName || 'Customer'} [cite: 71, 123]
         </button>
       </div>
     </div>
