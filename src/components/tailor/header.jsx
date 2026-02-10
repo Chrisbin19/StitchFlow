@@ -1,5 +1,6 @@
 import { Bell, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function TailorHeader() {
   return (
@@ -17,9 +18,11 @@ export default function TailorHeader() {
           <Button variant="outline" size="icon">
             <Settings className="w-5 h-5" />
           </Button>
+          <Link href="/">
           <Button variant="outline" size="icon" className="text-destructive bg-transparent">
             <LogOut className="w-5 h-5" />
           </Button>
+          </Link>
         </div>
       </div>
     </header>

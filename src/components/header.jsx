@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Bell, Settings, LogOut } from 'lucide-react';
-
+import Link from 'next/link';
 export function Header() {
   return (
     <header className="border-b border-border bg-card">
@@ -30,6 +30,7 @@ export function Header() {
           >
             <Settings className="w-5 h-5" />
           </Button>
+          <Link href="/">
           <Button 
             variant="ghost" 
             size="icon"
@@ -37,6 +38,7 @@ export function Header() {
           >
             <LogOut className="w-5 h-5" />
           </Button>
+          </Link>
         </div>
       </div>
     </header>
