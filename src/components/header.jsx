@@ -1,6 +1,9 @@
 import { Button } from '@/components/ui/button';
-import { Bell, Settings, LogOut } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
 import Link from 'next/link';
+// IMPORT THE NEW COMPONENT
+import NotificationBell from '@/components/admin/NotificationBell';
+
 export function Header() {
   return (
     <header className="border-b border-border bg-card">
@@ -16,13 +19,10 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <Bell className="w-5 h-5" />
-          </Button>
+          
+          {/* --- REPLACED STATIC BUTTON WITH SMART BELL --- */}
+          <NotificationBell />
+          
           <Button 
             variant="ghost" 
             size="icon"
@@ -31,13 +31,13 @@ export function Header() {
             <Settings className="w-5 h-5" />
           </Button>
           <Link href="/">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="w-5 h-5" />
-          </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
           </Link>
         </div>
       </div>
