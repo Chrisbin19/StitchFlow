@@ -54,16 +54,43 @@ export default function MeasurementDetails() {
   };
 
   // --- VALIDATION ---
-  const validateForm = () => {
-    const newErrors = {};
-    if (!customerName.trim()) newErrors.customerName = "Required";
-    if (!phone.trim()) newErrors.phone = "Required";
-    if (!deliveryDate) newErrors.deliveryDate = "Required";
-    if (!fabricColor.trim()) newErrors.fabricColor = "Required";
+  // const validateForm = () => {
+  //   const newErrors = {};
+  //   if (!customerName.trim()) newErrors.customerName = "Required";
+  //   if (!phone.trim()) newErrors.phone = "Required";
+  //   if (!deliveryDate) newErrors.deliveryDate = "Required";
+  //   if (!fabricColor.trim()) newErrors.fabricColor = "Required";
     
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
+
+
+
+  const validateForm = () => {
+  const newErrors = {};
+  if (!customerName.trim()) newErrors.customerName = "Required";
+  if (!phone.trim()) newErrors.phone = "Required";
+  
+  // Date Validation Logic
+  if (!deliveryDate) {
+    newErrors.deliveryDate = "Required";
+  } else {
+    const selectedDate = new Date(deliveryDate).toISOString().split('T')[0];
+    if (selectedDate < currentDate) {
+      newErrors.deliveryDate = "Date cannot be in the past";
+    } else if (selectedDate > maxDate) {
+      newErrors.deliveryDate = "Date must be within 3 months";
+    }
+  }
+
+  if (!fabricColor.trim()) newErrors.fabricColor = "Required";
+  
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
+
 
   // --- SAVE LOGIC ---
   const handleSave = async () => {
@@ -104,6 +131,16 @@ export default function MeasurementDetails() {
     w-full h-10 px-3 rounded-md border text-sm transition-all outline-none
     focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500
   `;
+
+
+  // 1. Get the current date in YYYY-MM-DD format
+const currentDate = new Date().toISOString().split('T')[0];
+
+// 2. Calculate the date exactly 3 months from now
+const threeMonthsFromNow = new Date();
+threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
+
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
@@ -152,6 +189,8 @@ export default function MeasurementDetails() {
               <input 
                 type="date"
                 value={deliveryDate}
+                min={currentDate} // Restricts anything before today
+                max={maxDate}     // Restricts anything beyond 3 months
                 onChange={(e) => setDeliveryDate(e.target.value)}
                 className={`${baseInputClass} ${errors.deliveryDate ? 'border-red-500' : 'border-gray-200'}`}
               />
@@ -161,6 +200,8 @@ export default function MeasurementDetails() {
               <input 
                 type="date"
                 value={trialDate}
+                min={currentDate} 
+                max={maxDate}
                 onChange={(e) => setTrialDate(e.target.value)}
                 className={`${baseInputClass} border-gray-200`}
               />
