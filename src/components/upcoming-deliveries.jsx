@@ -1,100 +1,115 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Calendar, User } from 'lucide-react';
+'use client';
 
-const deliveriesData = [
-  {
-    orderId: 'ORD-001',
-    customer: 'Rajesh Kumar',
-    dueDate: '2026-02-05',
-    garment: 'Formal Shirt',
-    daysLeft: 8,
-    priority: 'normal',
-  },
-  {
-    orderId: 'ORD-002',
-    customer: 'Priya Singh',
-    dueDate: '2026-02-03',
-    garment: 'Saree Blouse',
-    daysLeft: 6,
-    priority: 'urgent',
-  },
-  {
-    orderId: 'ORD-004',
-    customer: 'Sneha Verma',
-    dueDate: '2026-02-01',
-    garment: 'Dress',
-    daysLeft: 4,
-    priority: 'urgent',
-  },
-  {
-    orderId: 'ORD-003',
-    customer: 'Amit Patel',
-    dueDate: '2026-02-08',
-    garment: 'Trousers',
-    daysLeft: 11,
-    priority: 'normal',
-  },
-];
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { db } from "@/firebase"; 
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, ArrowRight, Calendar, Clock } from 'lucide-react';
 
 export function UpcomingDeliveries() {
+  const [deliveries, setDeliveries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchDeliveries = async () => {
+      try {
+        const q = query(collection(db, "orders"), where("status", "not-in", ["Delivered", "Cancelled", "Pending"]));
+        const querySnapshot = await getDocs(q);
+        const items = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          if (!data.workflow?.deliveryDate) return null;
+          const today = new Date(); today.setHours(0,0,0,0);
+          const due = new Date(data.workflow.deliveryDate); due.setHours(0,0,0,0);
+          const daysLeft = Math.ceil((due - today) / (86400000));
+          return {
+            id: doc.id,
+            customer: data.customer?.name || 'Unknown',
+            garment: data.product?.dressType || 'Item',
+            date: due.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+            daysLeft,
+            priority: daysLeft <= 3 ? 'urgent' : 'normal',
+            rawDate: due
+          };
+        }).filter(Boolean).sort((a,b) => a.rawDate - b.rawDate).slice(0, 5);
+        setDeliveries(items);
+      } finally { setLoading(false); }
+    };
+    fetchDeliveries();
+  }, []);
+
   return (
-    <Card className="border border-border">
-      <CardHeader className="border-b border-border">
-        <CardTitle className="text-lg">Upcoming Deliveries</CardTitle>
+    <Card className="h-fit border-none shadow-md bg-white ring-1 ring-slate-900/5">
+      <CardHeader className="border-b border-slate-50 py-4 px-6 bg-slate-50/50">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-indigo-100 rounded-md text-indigo-600">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <CardTitle className="text-sm font-bold text-slate-800">Deadlines</CardTitle>
+          </div>
+          <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">Next 5</span>
+        </div>
       </CardHeader>
-      <CardContent className="pt-6">
-        <div className="space-y-3">
-          {deliveriesData.map((delivery) => (
+
+      <CardContent className="p-0">
+        <div className="divide-y divide-slate-50">
+          {loading ? (
+             <div className="py-12 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
+               <Loader2 className="w-4 h-4 animate-spin" /> Checking dates...
+             </div>
+          ) : deliveries.map((item) => (
             <div 
-              key={delivery.orderId}
-              className={`p-3 rounded-lg border transition-colors ${
-                delivery.priority === 'urgent'
-                  ? 'border-red-300 bg-red-50 dark:bg-red-950/20'
-                  : 'border-border hover:bg-muted/30'
-              }`}
+              key={item.id} 
+              onClick={() => router.push(`/admin/orders/${item.id}`)}
+              className="p-4 hover:bg-slate-50 transition-all cursor-pointer group flex items-center justify-between"
             >
-              <div className="flex items-start gap-2 mb-2">
-                {delivery.priority === 'urgent' && (
-                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                )}
-                <div className="flex-1">
-                  <p className="font-semibold text-sm text-foreground">
-                    {delivery.orderId}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {delivery.garment}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-xs">
-                  <User className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-muted-foreground">
-                    {delivery.customer}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className={`font-medium ${
-                    delivery.daysLeft <= 3 
-                      ? 'text-red-600' 
-                      : 'text-foreground'
-                  }`}>
-                    {delivery.dueDate}
-                  </span>
-                  <span className={`ml-auto font-semibold ${
-                    delivery.daysLeft <= 3 
-                      ? 'text-red-600' 
-                      : 'text-muted-foreground'
-                  }`}>
-                    {delivery.daysLeft}d left
-                  </span>
-                </div>
-              </div>
+               {/* Left: Info */}
+               <div className="flex items-center gap-3">
+                 {/* The "Date Box" - Replaces the icon */}
+                 <div className={`
+                    flex flex-col items-center justify-center w-10 h-10 rounded-lg border text-xs font-bold leading-none
+                    ${item.priority === 'urgent' 
+                      ? 'bg-red-50 text-red-600 border-red-100' 
+                      : 'bg-slate-50 text-slate-600 border-slate-100'}
+                 `}>
+                    <span>{item.date.split(' ')[0]}</span>
+                    <span className="text-[8px] uppercase">{item.date.split(' ')[1]}</span>
+                 </div>
+                 
+                 <div className="flex flex-col gap-0.5">
+                   <p className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
+                     {item.customer}
+                   </p>
+                   <p className="text-[10px] text-slate-400">
+                     {item.garment} • <span className="font-mono">#{item.id.slice(0, 4)}</span>
+                   </p>
+                 </div>
+               </div>
+
+               {/* Right: Days Left */}
+               <div className="text-right">
+                 {item.priority === 'urgent' ? (
+                   <span className="inline-flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md">
+                     <Clock className="w-3 h-3" />
+                     {item.daysLeft < 0 ? `${Math.abs(item.daysLeft)}d Late` : `${item.daysLeft} days`}
+                   </span>
+                 ) : (
+                   <span className="text-xs font-semibold text-slate-500">
+                     {item.daysLeft} days
+                   </span>
+                 )}
+               </div>
             </div>
           ))}
+        </div>
+
+        <div className="p-3 bg-slate-50/50 border-t border-slate-100">
+          <Button variant="ghost" className="w-full text-xs font-semibold text-slate-500 hover:text-indigo-600 h-8">
+            View Calendar <ArrowRight className="w-3 h-3 ml-1" />
+          </Button>
         </div>
       </CardContent>
     </Card>
