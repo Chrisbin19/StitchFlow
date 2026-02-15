@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db } from "@/firebase"; 
+import { db } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
-import { 
-  Save, AlertCircle, CheckCircle2, 
-  User, Calendar, Scissors, Package, Ruler 
+import {
+  Save, AlertCircle, CheckCircle2,
+  User, Calendar, Scissors, Package, Ruler
 } from 'lucide-react';
 
-export default function MeasurementDetails() {
+export default function MeasurementDetails({ userId }) {
+  // TODO: Use userId to save measurements with user reference
   const { currentUser } = useAuth();
-  
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState({});
@@ -26,8 +27,8 @@ export default function MeasurementDetails() {
   const [dressType, setDressType] = useState('Shirt');
   const [material, setMaterial] = useState('Cotton');
   const [fabricColor, setFabricColor] = useState(''); // NEW FIELD
-  const [fabricSource, setFabricSource] = useState('Customer'); 
-  const [consumption, setConsumption] = useState(''); 
+  const [fabricSource, setFabricSource] = useState('Customer');
+  const [consumption, setConsumption] = useState('');
 
   // --- 3. DYNAMIC MEASUREMENTS ---
   const [measurements, setMeasurements] = useState({});
@@ -60,7 +61,7 @@ export default function MeasurementDetails() {
   //   if (!phone.trim()) newErrors.phone = "Required";
   //   if (!deliveryDate) newErrors.deliveryDate = "Required";
   //   if (!fabricColor.trim()) newErrors.fabricColor = "Required";
-    
+
   //   setErrors(newErrors);
   //   return Object.keys(newErrors).length === 0;
   // };
@@ -68,27 +69,27 @@ export default function MeasurementDetails() {
 
 
   const validateForm = () => {
-  const newErrors = {};
-  if (!customerName.trim()) newErrors.customerName = "Required";
-  if (!phone.trim()) newErrors.phone = "Required";
-  
-  // Date Validation Logic
-  if (!deliveryDate) {
-    newErrors.deliveryDate = "Required";
-  } else {
-    const selectedDate = new Date(deliveryDate).toISOString().split('T')[0];
-    if (selectedDate < currentDate) {
-      newErrors.deliveryDate = "Date cannot be in the past";
-    } else if (selectedDate > maxDate) {
-      newErrors.deliveryDate = "Date must be within 3 months";
-    }
-  }
+    const newErrors = {};
+    if (!customerName.trim()) newErrors.customerName = "Required";
+    if (!phone.trim()) newErrors.phone = "Required";
 
-  if (!fabricColor.trim()) newErrors.fabricColor = "Required";
-  
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-};
+    // Date Validation Logic
+    if (!deliveryDate) {
+      newErrors.deliveryDate = "Required";
+    } else {
+      const selectedDate = new Date(deliveryDate).toISOString().split('T')[0];
+      if (selectedDate < currentDate) {
+        newErrors.deliveryDate = "Date cannot be in the past";
+      } else if (selectedDate > maxDate) {
+        newErrors.deliveryDate = "Date must be within 3 months";
+      }
+    }
+
+    if (!fabricColor.trim()) newErrors.fabricColor = "Required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
 
 
@@ -105,7 +106,7 @@ export default function MeasurementDetails() {
         createdAt: serverTimestamp(),
         status: "Pending",
         isRead: false,
-        
+
         customer: { name: customerName, phone },
         workflow: { trialDate, deliveryDate, priority: "Normal" },
         product: { dressType, material, fabricColor, fabricSource, consumption },
@@ -116,7 +117,7 @@ export default function MeasurementDetails() {
       // Reset
       setCustomerName(""); setPhone(""); setTrialDate(""); setDeliveryDate("");
       setConsumption(""); setFabricColor(""); setNotes(""); setMeasurements({});
-      
+
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
       console.error(error);
@@ -134,17 +135,17 @@ export default function MeasurementDetails() {
 
 
   // 1. Get the current date in YYYY-MM-DD format
-const currentDate = new Date().toISOString().split('T')[0];
+  const currentDate = new Date().toISOString().split('T')[0];
 
-// 2. Calculate the date exactly 3 months from now
-const threeMonthsFromNow = new Date();
-threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
-const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
+  // 2. Calculate the date exactly 3 months from now
+  const threeMonthsFromNow = new Date();
+  threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+  const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
 
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
-      
+
       {/* Loading Overlay */}
       {loading && <div className="absolute top-0 w-full h-1 bg-indigo-500 animate-progress z-20" />}
 
@@ -158,17 +159,17 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
       </div>
 
       <div className="p-6 space-y-6">
-        
+
         {/* 1. CUSTOMER & DATES */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wide">
             <User className="w-3 h-3" /> Identity & Schedule
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-medium text-gray-700 mb-1 block">Customer Name</label>
-              <input 
+              <input
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder="Ex: Rajesh Kumar"
@@ -177,7 +178,7 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 mb-1 block">Phone Number</label>
-              <input 
+              <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+91..."
@@ -186,7 +187,7 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 mb-1 block">Delivery Date</label>
-              <input 
+              <input
                 type="date"
                 value={deliveryDate}
                 min={currentDate} // Restricts anything before today
@@ -197,10 +198,10 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 mb-1 block">Trial Date (Opt)</label>
-              <input 
+              <input
                 type="date"
                 value={trialDate}
-                min={currentDate} 
+                min={currentDate}
                 max={maxDate}
                 onChange={(e) => setTrialDate(e.target.value)}
                 className={`${baseInputClass} border-gray-200`}
@@ -220,8 +221,8 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-medium text-gray-700 mb-1 block">Type</label>
-              <select 
-                value={dressType} 
+              <select
+                value={dressType}
                 onChange={(e) => setDressType(e.target.value)}
                 className={`${baseInputClass} border-gray-200 bg-white`}
               >
@@ -230,8 +231,8 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 mb-1 block">Fabric Material</label>
-              <select 
-                value={material} 
+              <select
+                value={material}
                 onChange={(e) => setMaterial(e.target.value)}
                 className={`${baseInputClass} border-gray-200 bg-white`}
               >
@@ -240,7 +241,7 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 mb-1 block">Color / Pattern</label>
-              <input 
+              <input
                 value={fabricColor}
                 onChange={(e) => setFabricColor(e.target.value)}
                 placeholder="Ex: Navy Blue Checked"
@@ -249,7 +250,7 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 mb-1 block">Consumption (M)</label>
-              <input 
+              <input
                 type="number"
                 step="0.1"
                 placeholder="0.0"
@@ -274,10 +275,10 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
             {fieldsByDress[dressType]?.map((field) => (
               <div key={field}>
                 <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">{field}</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   step="0.1"
-                  value={measurements[field] || ''} 
+                  value={measurements[field] || ''}
                   onChange={(e) => handleMeasurementChange(field, e.target.value)}
                   className="w-full h-9 px-2 rounded border border-gray-200 text-sm focus:border-indigo-500 outline-none font-mono placeholder-gray-300"
                   placeholder="0.0"
@@ -290,7 +291,7 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
         {/* 4. NOTES */}
         <div>
           <label className="text-xs font-medium text-gray-700 mb-1 block">Special Instructions</label>
-          <textarea 
+          <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="w-full p-3 rounded-md border border-gray-200 text-sm focus:border-indigo-500 outline-none resize-none h-20"
@@ -299,7 +300,7 @@ const maxDate = threeMonthsFromNow.toISOString().split('T')[0];
         </div>
 
         {/* SUBMIT BUTTON */}
-        <button 
+        <button
           onClick={handleSave}
           disabled={loading}
           className={`

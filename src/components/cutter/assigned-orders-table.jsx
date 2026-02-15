@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, CheckCircle } from 'lucide-react';
 
-export default function AssignedOrdersTable() {
+export default function AssignedOrdersTable({ userId }) {
+  // TODO: Use userId to filter orders from Firestore
   const orders = [
     {
       id: 'ORD-001',
@@ -65,7 +66,7 @@ export default function AssignedOrdersTable() {
   return (
     <Card className="p-6">
       <h2 className="text-xl font-bold text-foreground mb-4">Assigned Orders</h2>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -138,13 +139,12 @@ export default function AssignedOrdersTable() {
                 </td>
                 <td className="py-3 px-4">
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      order.status === 'Completed'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : order.status === 'In Progress'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${order.status === 'Completed'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : order.status === 'In Progress'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                      }`}
                   >
                     {order.status}
                   </span>

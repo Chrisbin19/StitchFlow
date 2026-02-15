@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 
-export default function TaskProgress() {
+export default function TaskProgress({ userId }) {
+  // TODO: Use userId to fetch user-specific task progress
   const progressData = [
     { label: 'Pending', count: 3, percentage: 25, color: 'bg-gray-400' },
     { label: 'In Progress', count: 5, percentage: 42, color: 'bg-blue-500' },
@@ -12,7 +13,7 @@ export default function TaskProgress() {
   return (
     <Card className="p-6">
       <h2 className="text-lg font-bold text-foreground mb-4">Today's Progress</h2>
-      
+
       <div className="space-y-4">
         {progressData.map((item) => (
           <div key={item.label}>

@@ -1,7 +1,8 @@
 import { Card } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 
-export default function FabricRackInfo() {
+export default function FabricRackInfo({ userId }) {
+  // TODO: Use userId for user-specific fabric rack info
   const racks = [
     { rackNo: 'R-12-A', fabric: 'Cotton Blue', length: '15 m', status: 'Available' },
     { rackNo: 'R-08-B', fabric: 'Silk Red', length: '8 m', status: 'Low Stock' },
@@ -12,7 +13,7 @@ export default function FabricRackInfo() {
   return (
     <Card className="p-6">
       <h2 className="text-lg font-bold text-foreground mb-4">Fabric Rack Info</h2>
-      
+
       <div className="space-y-3">
         {racks.map((rack) => (
           <div
@@ -33,11 +34,10 @@ export default function FabricRackInfo() {
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground">{rack.length}</span>
               <span
-                className={`px-2 py-1 rounded text-xs font-medium ${
-                  rack.status === 'Available'
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-orange-100 text-orange-800'
-                }`}
+                className={`px-2 py-1 rounded text-xs font-medium ${rack.status === 'Available'
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : 'bg-orange-100 text-orange-800'
+                  }`}
               >
                 {rack.status}
               </span>

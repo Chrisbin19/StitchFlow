@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, CheckCircle } from 'lucide-react';
 
-export default function AssignedGarmentsTable() {
+export default function AssignedGarmentsTable({ userId }) {
+  // TODO: In the future, use userId to filter garments from Firestore
+  // Example: where("assignedTo", "==", userId)
   const garments = [
     {
       id: 'TASK-001',
@@ -60,7 +62,7 @@ export default function AssignedGarmentsTable() {
   return (
     <Card className="p-6">
       <h2 className="text-xl font-bold text-foreground mb-4">Assigned Garments</h2>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -127,13 +129,12 @@ export default function AssignedGarmentsTable() {
                 </td>
                 <td className="py-3 px-4">
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      garment.status === 'Ready for QC'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : garment.status === 'In Progress'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${garment.status === 'Ready for QC'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : garment.status === 'In Progress'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                      }`}
                   >
                     {garment.status}
                   </span>

@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 
-export default function WorkProgress() {
+export default function WorkProgress({ userId }) {
+  // TODO: Use userId to fetch user-specific progress data
   const progressData = [
     { label: 'Pending', count: 2, percentage: 20, color: 'bg-gray-400' },
     { label: 'In Progress', count: 4, percentage: 40, color: 'bg-blue-500' },
@@ -13,7 +14,7 @@ export default function WorkProgress() {
   return (
     <Card className="p-6">
       <h2 className="text-lg font-bold text-foreground mb-4">Work Status</h2>
-      
+
       <div className="space-y-4">
         {progressData.map((item) => (
           <div key={item.label}>

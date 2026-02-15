@@ -2,72 +2,71 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import LoginForm from "@/components/auth/LoginForm";
-import { useAuth } from "@/context/AuthContext"; // Import your auth hook
-import { doc, getDoc } from "firebase/firestore"; // Import Firestore tools
-import { db } from "@/firebase"; // Import your database config
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("Tailor"); // Default role
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // To show loading state
-  
-  const { login } = useAuth(); // Get the actual login function
+  const [loading, setLoading] = useState(false);
+
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true); // Start loading
+    setLoading(true);
 
     try {
-      // 1. Firebase Authentication (Check Email & Password)
-      const userCredential = await login(email, password);
-      const user = userCredential.user;
+      // The AuthContext login function returns {success, role} and handles localStorage
+      const result = await login(email, password);
 
-      // 2. Database Role Verification (Security Check)
-      // Check if this user actually has the role they selected in the dropdown
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        
-        // Verify the database role matches the dropdown selection
-        if (userData.role !== role) {
-           setError(`Access Denied: Your account is not registered as a "${role}".`);
-           setLoading(false);
-           return; 
-        }
-
-        console.log(`Login successful: ${user.email} as ${role}`);
-
-        // 3. ROLE-BASED REDIRECT LOGIC
-        // Redirect to specific pages based on the role
-        switch(role) {
-          case "Admin":
-            router.push("/admin");
-            break;
-          case "Tailor":
-            router.push("/tailor");
-            break;
-          case "Cutter":
-             router.push("/cutter");
-             break;
-          case "Manager":
-             router.push("/admin");
-             break;
-          case "Cashier":
-             router.push("/cashier");
-             break;
-          default:
-             router.push("/dashboard"); // Fallback for others
-        }
-        
-      } else {
-        setError("User profile not found. Please contact Admin.");
+      // Check if login was successful
+      if (!result || !result.success) {
+        setError(result?.error || "Authentication failed. Please try again.");
         setLoading(false);
+        return;
+      }
+
+      // Verify the database role matches the dropdown selection
+      if (result.role !== role) {
+        setError(`Access Denied: Your account is not registered as a "${role}".`);
+        setLoading(false);
+        return;
+      }
+
+      // Get user ID from localStorage (already set by AuthContext)
+      const userId = localStorage.getItem('stitch_user_id');
+
+      if (!userId) {
+        setError("User ID not found. Please contact support.");
+        setLoading(false);
+        return;
+      }
+
+      console.log(`Login successful: ${result.role} user`);
+
+      // ROLE-BASED REDIRECT LOGIC
+      switch (result.role) {
+        case "Admin":
+          router.push("/admin");
+          break;
+        case "Tailor":
+          router.push(`/tailor/${userId}`);
+          break;
+        case "Cutter":
+          router.push(`/cutter/${userId}`);
+          break;
+        case "Manager":
+          router.push("/admin");
+          break;
+        case "Cashier":
+          router.push("/cashier");
+          break;
+        default:
+          router.push("/dashboard");
       }
 
     } catch (err) {
@@ -84,17 +83,14 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <LoginForm 
+      <LoginForm
         email={email} setEmail={setEmail}
         password={password} setPassword={setPassword}
         role={role} setRole={setRole}
         error={error}
         onSubmit={handleLogin}
-        // You can pass 'loading' to your form to disable the button while spinning
-        loading={loading} 
+        loading={loading}
       />
     </main>
   );
 }
-
-

@@ -2,7 +2,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Download } from 'lucide-react';
 
-export default function CompletedGarments() {
+export default function CompletedGarments({ userId }) {
+  // TODO: Use userId to filter completed garments
   const completed = [
     {
       id: 'TASK-002',
@@ -39,7 +40,7 @@ export default function CompletedGarments() {
         <h2 className="text-xl font-bold text-foreground">Ready for QC Today</h2>
         <CheckCircle className="w-6 h-6 text-emerald-600" />
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -83,11 +84,10 @@ export default function CompletedGarments() {
                 <td className="py-3 px-4 text-foreground">{item.completedTime}</td>
                 <td className="py-3 px-4">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      item.quality === 'Excellent'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${item.quality === 'Excellent'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-blue-100 text-blue-800'
+                      }`}
                   >
                     {item.quality}
                   </span>

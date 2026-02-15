@@ -1,7 +1,8 @@
 import { Card } from '@/components/ui/card';
 import { Scissors, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 
-export default function CutterStats() {
+export default function CutterStats({ userId }) {
+  // TODO: Use userId to fetch user-specific stats
   const stats = [
     {
       title: 'Assigned Orders',

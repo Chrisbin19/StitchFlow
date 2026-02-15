@@ -1,7 +1,9 @@
 import { Card } from '@/components/ui/card';
 import { BedDouble as Needle, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 
-export default function TailorStats() {
+export default function TailorStats({ userId }) {
+  // TODO: In the future, use userId to fetch real stats from Firestore
+  // Example: const stats = await getStatsForUser(userId);
   const stats = [
     {
       title: 'Assigned Garments',
