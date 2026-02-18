@@ -68,12 +68,21 @@ export function TeamRoster() {
   };
 
   const handleEditClick = (worker) => {
-    setEditingWorker({ ...worker });
+    // Initializing with fallbacks to prevent "controlled to uncontrolled" error
+    setEditingWorker({ 
+      ...worker,
+      name: worker.name || '',
+      email: worker.email || '',
+      role: worker.role || 'staff'
+    });
     setIsEditOpen(true);
   };
 
   const handleSaveEdit = async () => {
-    if (!editingWorker) return;
+    if (!editingWorker || !editingWorker.name) {
+        alert("Name is required");
+        return;
+    }
     setSaving(true);
     try {
       await updateDoc(doc(db, "users", editingWorker.id), {
@@ -159,11 +168,11 @@ export function TeamRoster() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                       {(worker.role === 'tailor' || worker.role === 'cutter') ? (
+                        {(worker.role === 'tailor' || worker.role === 'cutter') ? (
                           <Badge variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200">
                             {workloads[worker.id] || 0}
                           </Badge>
-                       ) : <span className="text-slate-300">-</span>}
+                        ) : <span className="text-slate-300">-</span>}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -187,7 +196,6 @@ export function TeamRoster() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-[420px] p-0 gap-0 overflow-hidden border-0 shadow-2xl rounded-2xl">
           
-          {/* 1. Header with Gradient & Avatar */}
           <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 pb-10 text-center relative">
              <button 
                onClick={() => setIsEditOpen(false)}
@@ -197,53 +205,48 @@ export function TeamRoster() {
              </button>
              
              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-3xl font-bold text-indigo-700 shadow-xl border-4 border-white/20 mx-auto mb-4">
-               {editingWorker?.name?.charAt(0).toUpperCase()}
+               {editingWorker?.name?.charAt(0).toUpperCase() || 'U'}
              </div>
              
              <DialogTitle className="text-xl font-bold text-white tracking-tight">
-               {editingWorker?.name}
+               {editingWorker?.name || 'User Profile'}
              </DialogTitle>
              <DialogDescription className="text-indigo-100 text-xs mt-1 font-medium opacity-80">
                Edit profile details and permissions
              </DialogDescription>
           </div>
 
-          {/* 2. Form Body (Floating Card Effect) */}
           <div className="bg-white -mt-4 rounded-t-2xl px-8 pt-8 pb-6 space-y-5 relative z-10">
-              
-              {/* Name Input */}
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Display Name</Label>
                 <div className="relative group">
                   <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                   <Input
                     className="pl-10 h-10 border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-700"
-                    value={editingWorker?.name}
+                    value={editingWorker?.name || ''} 
                     onChange={(e) => setEditingWorker({...editingWorker, name: e.target.value})}
                   />
                 </div>
               </div>
 
-              {/* Email Input */}
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Email Address</Label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                   <Input
                     className="pl-10 h-10 border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-700"
-                    value={editingWorker?.email}
+                    value={editingWorker?.email || ''} 
                     onChange={(e) => setEditingWorker({...editingWorker, email: e.target.value})}
                   />
                 </div>
               </div>
 
-              {/* Role Select */}
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Assigned Role</Label>
                 <div className="relative">
                   <Briefcase className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 z-10" />
                   <Select 
-                    value={editingWorker?.role} 
+                    value={editingWorker?.role || ''} 
                     onValueChange={(val) => setEditingWorker({...editingWorker, role: val})}
                   >
                     <SelectTrigger className="pl-10 h-10 border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-700">
@@ -260,7 +263,6 @@ export function TeamRoster() {
               </div>
           </div>
 
-          {/* 3. Footer Actions */}
           <div className="px-8 pb-8 pt-2 flex gap-3 bg-white">
             <Button 
               variant="ghost" 
