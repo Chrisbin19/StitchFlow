@@ -39,39 +39,77 @@
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
+  /* Deep navy background — premium, not harsh pure black */
+  --background: oklch(0.13 0.012 264);
+  --foreground: oklch(0.96 0.005 264);
+
+  /* Cards sit slightly above the background */
+  --card: oklch(0.18 0.012 264);
+  --card-foreground: oklch(0.96 0.005 264);
+
+  --popover: oklch(0.18 0.012 264);
+  --popover-foreground: oklch(0.96 0.005 264);
+
+  /* Primary actions */
+  --primary: oklch(0.72 0.18 264);
+  --primary-foreground: oklch(0.13 0.012 264);
+
+  /* Subtle surfaces */
+  --secondary: oklch(0.24 0.012 264);
+  --secondary-foreground: oklch(0.96 0.005 264);
+
+  --muted: oklch(0.22 0.01 264);
+  --muted-foreground: oklch(0.62 0.015 264);
+
+  --accent: oklch(0.26 0.015 264);
+  --accent-foreground: oklch(0.96 0.005 264);
+
+  /* Borders: subtle white glow */
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.72 0.18 264 / 50%);
+
+  /* Destructive */
+  --destructive: oklch(0.65 0.22 22);
+  --destructive-foreground: oklch(0.96 0 0);
+
+  /* Charts */
+  --chart-1: oklch(0.55 0.22 264);
+  --chart-2: oklch(0.65 0.17 162);
+  --chart-3: oklch(0.75 0.19 70);
+  --chart-4: oklch(0.60 0.26 303);
+  --chart-5: oklch(0.62 0.24 16);
+
+  /* Sidebar */
+  --sidebar: oklch(0.16 0.012 264);
+  --sidebar-foreground: oklch(0.96 0.005 264);
+  --sidebar-primary: oklch(0.55 0.22 264);
+  --sidebar-primary-foreground: oklch(0.96 0 0);
+  --sidebar-accent: oklch(0.24 0.012 264);
+  --sidebar-accent-foreground: oklch(0.96 0.005 264);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.55 0.016 264);
 }
+
+@layer base {
+
+  /* Smooth theme transitions — makes toggle feel premium */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+  }
+
+  /* But don't animate layout/transform properties (performance) */
+  *:where([class*="animate-"]),
+  *:where([class*="transition-"]) {
+    transition: unset;
+  }
+}
+
+
 
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';
@@ -124,21 +162,45 @@
   --color-chart-1: var(--chart-1);
 
   @keyframes accordion-down {
-    from { height: 0; }
-    to { height: var(--radix-accordion-content-height); }
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-accordion-content-height);
+    }
   }
+
   @keyframes accordion-up {
-    from { height: var(--radix-accordion-content-height); }
-    to { height: 0; }
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+
+    to {
+      height: 0;
+    }
   }
+
   @keyframes collapsible-down {
-    from { height: 0; }
-    to { height: var(--radix-collapsible-content-height); }
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-collapsible-content-height);
+    }
   }
+
   @keyframes collapsible-up {
-    from { height: var(--radix-collapsible-content-height); }
-    to { height: 0; }
+    from {
+      height: var(--radix-collapsible-content-height);
+    }
+
+    to {
+      height: 0;
+    }
   }
+
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px)
@@ -149,6 +211,7 @@
     /* Now 'border-border' will work because '--color-border' is mapped above */
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
