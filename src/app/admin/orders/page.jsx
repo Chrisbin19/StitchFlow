@@ -1,13 +1,13 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { db } from "@/firebase"; 
+import { useAuth } from '@/context/AuthContext';
+import { db } from "@/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
-import { 
-  Search, Filter, Calendar, Scissors, 
+import {
+  Search, Filter, Calendar, Scissors,
   ChevronDown, X, Check
 } from 'lucide-react';
 
@@ -24,18 +24,29 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 
+const ALLOWED_ROLES = ['Admin', 'Manager'];
+
 export default function OrdersPage() {
+  const { currentUser, userData, isLoadingUser } = useAuth();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [loading, setLoading] = useState(true);
-  
+
   // NEW: Filter States
   const [selectedGarment, setSelectedGarment] = useState("All");
   const [paymentStatus, setPaymentStatus] = useState("All");
 
   const router = useRouter();
+
+  // 🔒 ROUTE GUARD: Only Admin and Manager can access
+  useEffect(() => {
+    if (isLoadingUser) return;
+    if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
+      router.push('/');
+    }
+  }, [currentUser, userData, isLoadingUser, router]);
 
   // 1. Fetch All Orders (Real-time)
   useEffect(() => {
@@ -76,7 +87,7 @@ export default function OrdersPage() {
     // Filter by Search
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
-      result = result.filter(o => 
+      result = result.filter(o =>
         o.customer?.name?.toLowerCase().includes(lowerQuery) ||
         o.id.toLowerCase().includes(lowerQuery) ||
         o.product?.dressType?.toLowerCase().includes(lowerQuery)
@@ -107,9 +118,26 @@ export default function OrdersPage() {
     return styles[status] || 'bg-gray-100 text-gray-800';
   };
 
+  // 🔒 Show loading while verifying auth
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen bg-slate-50/50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-slate-400">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50/50 p-8 font-sans">
-      
+
+
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
@@ -125,8 +153,8 @@ export default function OrdersPage() {
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 space-y-4 md:space-y-0 md:flex justify-between items-center">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input 
-            placeholder="Search customer, ID, or garment..." 
+          <Input
+            placeholder="Search customer, ID, or garment..."
             className="pl-9 bg-slate-50 border-slate-200"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -134,64 +162,64 @@ export default function OrdersPage() {
         </div>
 
         <div className="flex items-center gap-2">
-            {/* ADVANCED FILTER POPOVER */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="text-slate-600 border-slate-200 relative">
-                  <Filter className="w-4 h-4 mr-2" /> 
-                  Filter 
-                  {(selectedGarment !== "All" || paymentStatus !== "All") && (
-                    <span className="ml-2 w-2 h-2 bg-indigo-600 rounded-full"></span>
-                  )}
-                  <ChevronDown className="w-3 h-3 ml-2 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-4" align="end">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-sm">Advanced Filters</h4>
-                    <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 px-2 text-xs text-indigo-600">Reset</Button>
-                  </div>
-                  <Separator />
-                  
-                  {/* Garment Type Filter */}
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">Garment Type</p>
-                    {["All", "Shirt", "Suit", "Kurti"].map((type) => (
-                      <div 
-                        key={type} 
-                        onClick={() => setSelectedGarment(type)}
-                        className="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-slate-100 cursor-pointer text-sm"
-                      >
-                        {type}
-                        {selectedGarment === type && <Check className="w-4 h-4 text-indigo-600" />}
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <Separator />
-
-                  {/* Payment Filter */}
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">Payment</p>
-                    {["All", "Paid", "Partial"].map((status) => (
-                      <div 
-                        key={status} 
-                        onClick={() => setPaymentStatus(status)}
-                        className="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-slate-100 cursor-pointer text-sm"
-                      >
-                        {status}
-                        {paymentStatus === status && <Check className="w-4 h-4 text-indigo-600" />}
-                      </div>
-                    ))}
-                  </div>
+          {/* ADVANCED FILTER POPOVER */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="text-slate-600 border-slate-200 relative">
+                <Filter className="w-4 h-4 mr-2" />
+                Filter
+                {(selectedGarment !== "All" || paymentStatus !== "All") && (
+                  <span className="ml-2 w-2 h-2 bg-indigo-600 rounded-full"></span>
+                )}
+                <ChevronDown className="w-3 h-3 ml-2 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-4" align="end">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-bold text-sm">Advanced Filters</h4>
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 px-2 text-xs text-indigo-600">Reset</Button>
                 </div>
-              </PopoverContent>
-            </Popover>
+                <Separator />
 
-            <Button variant="outline" size="sm" className="text-slate-600 border-slate-200">
-              <Calendar className="w-4 h-4 mr-2" /> Date Range
-            </Button>
+                {/* Garment Type Filter */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Garment Type</p>
+                  {["All", "Shirt", "Suit", "Kurti"].map((type) => (
+                    <div
+                      key={type}
+                      onClick={() => setSelectedGarment(type)}
+                      className="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-slate-100 cursor-pointer text-sm"
+                    >
+                      {type}
+                      {selectedGarment === type && <Check className="w-4 h-4 text-indigo-600" />}
+                    </div>
+                  ))}
+                </div>
+
+                <Separator />
+
+                {/* Payment Filter */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Payment</p>
+                  {["All", "Paid", "Partial"].map((status) => (
+                    <div
+                      key={status}
+                      onClick={() => setPaymentStatus(status)}
+                      className="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-slate-100 cursor-pointer text-sm"
+                    >
+                      {status}
+                      {paymentStatus === status && <Check className="w-4 h-4 text-indigo-600" />}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          <Button variant="outline" size="sm" className="text-slate-600 border-slate-200">
+            <Calendar className="w-4 h-4 mr-2" /> Date Range
+          </Button>
         </div>
       </div>
 
@@ -248,8 +276,8 @@ export default function OrdersPage() {
                   </TableRow>
                 ) : (
                   filteredOrders.map((order) => (
-                    <TableRow 
-                      key={order.id} 
+                    <TableRow
+                      key={order.id}
                       className="cursor-pointer hover:bg-slate-50 transition-colors"
                       onClick={() => router.push(`/admin/orders/${order.id}`)}
                     >
@@ -262,7 +290,7 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                           <Badge variant="outline" className="bg-white text-slate-600 font-semibold">{order.product?.dressType}</Badge>
+                          <Badge variant="outline" className="bg-white text-slate-600 font-semibold">{order.product?.dressType}</Badge>
                         </div>
                       </TableCell>
                       <TableCell className="text-slate-600 text-sm">{order.workflow?.deliveryDate ? new Date(order.workflow.deliveryDate).toLocaleDateString() : 'N/A'}</TableCell>

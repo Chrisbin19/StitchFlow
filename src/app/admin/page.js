@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { Header } from '@/components/header';
 import { StatsCards } from '@/components/stats-cards';
 import { PendingOrdersTable } from '@/components/pending-orders-table';
@@ -10,7 +13,35 @@ import { Button } from '@/components/ui/button';
 import { Users } from 'lucide-react';
 import Link from 'next/link';
 
+const ALLOWED_ROLES = ['Admin', 'Manager'];
+
 export default function Dashboard() {
+  const { currentUser, userData, isLoadingUser } = useAuth();
+  const router = useRouter();
+
+  // 🔒 ROUTE GUARD: Only Admin and Manager can access
+  useEffect(() => {
+    if (isLoadingUser) return;
+    if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
+      router.push('/');
+    }
+  }, [currentUser, userData, isLoadingUser, router]);
+
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />

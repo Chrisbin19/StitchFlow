@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { db } from "@/firebase";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import {
@@ -34,9 +35,12 @@ const RATE_CARD = {
   Sherwani: 8000,
 };
 
+const ALLOWED_ROLES = ['Admin', 'Manager'];
+
 export default function OrderApprovalPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { currentUser, userData, isLoadingUser } = useAuth();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -47,6 +51,14 @@ export default function OrderApprovalPage() {
   const [advance, setAdvance] = useState("");
   const [deadline, setDeadline] = useState("");
   const [adminNote, setAdminNote] = useState("");
+
+  // 🔒 ROUTE GUARD: Only Admin and Manager can access
+  useEffect(() => {
+    if (isLoadingUser) return;
+    if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
+      router.push('/');
+    }
+  }, [currentUser, userData, isLoadingUser, router]);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -135,6 +147,22 @@ export default function OrderApprovalPage() {
       setProcessing(false);
     }
   };
+
+  // 🔒 Auth loading check
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen bg-slate-50/50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-slate-400">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
+    return null;
+  }
 
   if (loading)
     return (

@@ -1,12 +1,28 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { AdminHeader } from '@/components/team/header';
 import { TeamStats } from '@/components/team/team-stats';
 import { TeamRoster } from '@/components/team/team-roster';
 import { AddStaffForm } from '@/components/team/add-staff-form';
 
+const ALLOWED_ROLES = ['Admin', 'Manager'];
+
 export default function AdminTeamPage() {
+  const { currentUser, userData, isLoadingUser } = useAuth();
+  const router = useRouter();
+
+  // 🔒 ROUTE GUARD: Only Admin and Manager can access
+  useEffect(() => {
+    if (isLoadingUser) return;
+    if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
+      router.push('/');
+    }
+  }, [currentUser, userData, isLoadingUser, router]);
+
   const [workers, setWorkers] = useState([
     {
       id: 1,
@@ -62,6 +78,22 @@ export default function AdminTeamPage() {
   const handleDeleteWorker = (id) => {
     setWorkers((prev) => prev.filter((w) => w.id !== id));
   };
+
+  // 🔒 Show loading while verifying auth
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
