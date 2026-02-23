@@ -62,6 +62,23 @@ export default function AuthProvider(props) {
     }
   }
 
+  // REFRESH USER DATA: Re-fetch from Firestore (called after profile edits)
+  async function refreshUserData() {
+    if (!currentUser) return;
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const dbData = userDocSnap.data();
+        setUserData(dbData);
+        localStorage.setItem("stitch_user_name", dbData.name || "User");
+        localStorage.setItem("stitch_user_role", dbData.role);
+      }
+    } catch (err) {
+      console.error("Failed to refresh user data:", err);
+    }
+  }
+
   // 5. MODIFIED LOGOUT FUNCTION
   function logout() {
     // Clear everything so the next user doesn't see old data
@@ -116,6 +133,7 @@ export default function AuthProvider(props) {
     signup,
     login,
     logout,
+    refreshUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

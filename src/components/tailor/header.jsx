@@ -17,9 +17,11 @@ export default function TailorHeader({ userId, userName }) {
           <Button variant="outline" size="icon">
             <Bell className="w-5 h-5" />
           </Button>
-          <Button variant="outline" size="icon">
-            <Settings className="w-5 h-5" />
-          </Button>
+          <Link href={`/tailor/${userId}/profile`}>
+            <Button variant="outline" size="icon">
+              <Settings className="w-5 h-5" />
+            </Button>
+          </Link>
           <Link href="/">
             <Button variant="outline" size="icon" className="text-destructive bg-transparent">
               <LogOut className="w-5 h-5" />
