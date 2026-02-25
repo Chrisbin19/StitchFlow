@@ -1,33 +1,92 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { db } from "@/firebase";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { Card } from '@/components/ui/card';
-import { IndianRupee, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
+import { IndianRupee, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 export default function PaymentStats() {
+  const [pendingCount, setPendingCount] = useState(0);
+  const [paidTodayCount, setPaidTodayCount] = useState(0);
+  const [todayCollection, setTodayCollection] = useState(0);
+  const [totalPending, setTotalPending] = useState(0);
+
+  useEffect(() => {
+    // Listen for PAYMENT_PENDING orders
+    const pendingQ = query(
+      collection(db, "orders"),
+      where("status", "==", "PAYMENT_PENDING")
+    );
+
+    const unsubPending = onSnapshot(pendingQ, (snapshot) => {
+      setPendingCount(snapshot.size);
+      let total = 0;
+      snapshot.docs.forEach(doc => {
+        total += doc.data().financial?.advanceAmount || 0;
+      });
+      setTotalPending(total);
+    });
+
+    // Listen for ADVANCE_PAID orders (to compute today's collections)
+    const paidQ = query(
+      collection(db, "orders"),
+      where("status", "==", "ADVANCE_PAID")
+    );
+
+    const unsubPaid = onSnapshot(paidQ, (snapshot) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let count = 0;
+      let collection = 0;
+
+      snapshot.docs.forEach(doc => {
+        const payments = doc.data().financial?.payments || [];
+        payments.forEach(p => {
+          const payDate = p.timestamp?.toDate ? p.timestamp.toDate() : new Date(p.timestamp);
+          if (payDate >= today) {
+            count++;
+            collection += p.amount || 0;
+          }
+        });
+      });
+
+      setPaidTodayCount(count);
+      setTodayCollection(collection);
+    });
+
+    return () => {
+      unsubPending();
+      unsubPaid();
+    };
+  }, []);
+
   const stats = [
     {
       title: 'Today Collection',
-      value: '₹45,320',
+      value: `₹${todayCollection.toLocaleString()}`,
       icon: IndianRupee,
       color: 'text-primary',
       bg: 'bg-primary/10',
     },
     {
-      title: 'Pending Payments',
-      value: '₹1,28,450',
+      title: 'Pending Advances',
+      value: `₹${totalPending.toLocaleString()}`,
       icon: AlertCircle,
       color: 'text-orange-600',
       bg: 'bg-orange-100',
     },
     {
-      title: 'Paid Today',
-      value: '15',
+      title: 'Collected Today',
+      value: String(paidTodayCount),
       icon: CheckCircle,
       color: 'text-emerald-600',
       bg: 'bg-emerald-100',
     },
     {
-      title: 'Monthly Target',
-      value: '₹8,50,000',
-      icon: TrendingUp,
+      title: 'Awaiting Collection',
+      value: String(pendingCount),
+      icon: Clock,
       color: 'text-blue-600',
       bg: 'bg-blue-100',
     },

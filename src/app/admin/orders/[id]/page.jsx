@@ -116,14 +116,23 @@ export default function OrderApprovalPage() {
     setProcessing(true);
     try {
       const orderRef = doc(db, "orders", id);
+      const advanceVal = parseFloat(advance) || 0;
+      const priceVal = parseFloat(price) || 0;
+
+      // If advance > 0, send to cashier for payment collection
+      // If advance === 0, skip cashier and go straight to cutting
+      const nextStatus = advanceVal > 0 ? "PAYMENT_PENDING" : "CUTTING_READY";
+      const timelineNote = advanceVal > 0
+        ? `Manager approved at ₹${priceVal}. Sent to Cashier for ₹${advanceVal} advance.`
+        : `Manager approved at ₹${priceVal}. No advance required — sent to Cutting.`;
 
       await updateDoc(orderRef, {
-        status: "PAYMENT_PENDING",
+        status: nextStatus,
         financial: {
-          totalPrice: parseFloat(price),
-          advanceAmount: parseFloat(advance),
-          balanceAmount: parseFloat(price) - parseFloat(advance),
-          isPaid: false,
+          totalPrice: priceVal,
+          advanceAmount: advanceVal,
+          balanceAmount: priceVal - advanceVal,
+          isPaid: advanceVal === 0,
         },
         workflow: {
           ...order.workflow,
@@ -132,13 +141,17 @@ export default function OrderApprovalPage() {
         isRead: true,
         timeline: arrayUnion({
           stage: "Manager Approved",
-          note: `Manager approved at ₹${price}. Sent to Cashier.`,
+          note: timelineNote,
           timestamp: new Date(),
         }),
         adminNote: adminNote,
       });
 
-      alert("Success: Order sent to Cashier for advance payment.");
+      alert(
+        advanceVal > 0
+          ? "Success: Order sent to Cashier for advance payment."
+          : "Success: No advance needed — order sent directly to Cutting."
+      );
       router.back();
     } catch (error) {
       console.error("Error approving:", error);
