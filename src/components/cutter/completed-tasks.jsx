@@ -1,45 +1,45 @@
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, Download } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Download } from "lucide-react";
 
 export default function CompletedTasks({ userId }) {
   // TODO: Use userId to filter completed tasks
   const completedTasks = [
     {
-      id: 'TASK-001',
-      orderId: 'ORD-002',
-      garment: 'Shirt',
-      fabric: 'Cotton Blue',
+      id: "TASK-001",
+      orderId: "ORD-002",
+      garment: "Shirt",
+      fabric: "Cotton Blue",
       quantity: 2,
-      completedTime: '09:30 AM',
-      quality: 'Good',
+      completedTime: "09:30 AM",
+      quality: "Good",
     },
     {
-      id: 'TASK-002',
-      orderId: 'ORD-006',
-      garment: 'Trouser',
-      fabric: 'Denim Black',
+      id: "TASK-002",
+      orderId: "ORD-006",
+      garment: "Trouser",
+      fabric: "Denim Black",
       quantity: 1,
-      completedTime: '10:45 AM',
-      quality: 'Good',
+      completedTime: "10:45 AM",
+      quality: "Good",
     },
     {
-      id: 'TASK-003',
-      orderId: 'ORD-009',
-      garment: 'Kurta',
-      fabric: 'Linen White',
+      id: "TASK-003",
+      orderId: "ORD-009",
+      garment: "Kurta",
+      fabric: "Linen White",
       quantity: 3,
-      completedTime: '12:15 PM',
-      quality: 'Excellent',
+      completedTime: "12:15 PM",
+      quality: "Excellent",
     },
     {
-      id: 'TASK-004',
-      orderId: 'ORD-012',
-      garment: 'Dupatta',
-      fabric: 'Chiffon Maroon',
+      id: "TASK-004",
+      orderId: "ORD-012",
+      garment: "Dupatta",
+      fabric: "Chiffon Maroon",
       quantity: 1,
-      completedTime: '02:00 PM',
-      quality: 'Good',
+      completedTime: "02:00 PM",
+      quality: "Good",
     },
   ];
 
@@ -99,10 +99,11 @@ export default function CompletedTasks({ userId }) {
                 </td>
                 <td className="py-3 px-4">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${task.quality === 'Excellent'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-blue-100 text-blue-800'
-                      }`}
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      task.quality === "Excellent"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
                   >
                     {task.quality}
                   </span>

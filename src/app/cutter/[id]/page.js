@@ -11,6 +11,12 @@ import FabricRackInfo from '@/components/cutter/fabric-rack-info';
 import TaskProgress from '@/components/cutter/task-progress';
 import CompletedTasks from '@/components/cutter/completed-tasks';
 
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from '@/components/ui/card';
+// ... rest of your imports
+
+
 export default function CutterDashboard() {
     const params = useParams();
     const router = useRouter();

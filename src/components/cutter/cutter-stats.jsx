@@ -1,36 +1,36 @@
-import { Card } from '@/components/ui/card';
-import { Scissors, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { Scissors, Clock, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function CutterStats({ userId }) {
   // TODO: Use userId to fetch user-specific stats
   const stats = [
     {
-      title: 'Assigned Orders',
-      value: '12',
+      title: "Assigned Orders",
+      value: "12",
       icon: Scissors,
-      color: 'text-primary',
-      bg: 'bg-primary/10',
+      color: "text-primary",
+      bg: "bg-primary/10",
     },
     {
-      title: 'In Progress',
-      value: '5',
+      title: "In Progress",
+      value: "5",
       icon: Clock,
-      color: 'text-orange-600',
-      bg: 'bg-orange-100',
+      color: "text-orange-600",
+      bg: "bg-orange-100",
     },
     {
-      title: 'Completed Today',
-      value: '7',
+      title: "Completed Today",
+      value: "7",
       icon: CheckCircle,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-100',
+      color: "text-emerald-600",
+      bg: "bg-emerald-100",
     },
     {
-      title: 'Pending Fabrics',
-      value: '3',
+      title: "Pending Fabrics",
+      value: "3",
       icon: AlertCircle,
-      color: 'text-red-600',
-      bg: 'bg-red-100',
+      color: "text-red-600",
+      bg: "bg-red-100",
     },
   ];
 
