@@ -10,6 +10,7 @@ import AssignedGarmentsTable from '@/components/tailor/assigned-garments-table';
 import MeasurementDetails from '@/components/tailor/measurement-details';
 import WorkProgress from '@/components/tailor/work-progress';
 import CompletedGarments from '@/components/tailor/completed-garments';
+import ReadyForDelivery from '@/components/tailor/ready-for-delivery'; 
 
 
 export default function TailorDashboard() {
@@ -100,8 +101,15 @@ export default function TailorDashboard() {
 
                     {/* Completed Garments */}
                     <CompletedGarments userId={userId} />
+
+                    {/* 2. Add the Ready for Delivery component here at the end */}
+
+                    <ReadyForDelivery />
                 </div>
             </main>
         </div>
     );
 }
+
+
+
