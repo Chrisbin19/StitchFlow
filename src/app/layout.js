@@ -39,7 +39,7 @@ export default function RootLayout({ children }) {
         {/* 3. WRAP EVERYTHING IN THEME PROVIDER */}
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
