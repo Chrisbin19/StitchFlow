@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { db } from "@/firebase";
 import { collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
-import { Bell, IndianRupee, Clock, CheckCircle2, PackageCheck, Truck } from 'lucide-react';
+import { IndianRupee, Clock, CheckCircle2, PackageCheck, Truck } from 'lucide-react';
+import { NotificationIcon } from '@/components/ui/animated-state-icons';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -85,7 +86,10 @@ export default function CashierNotificationBell({ onCollect, onDeliver }) {
                     size="icon"
                     className="relative"
                 >
-                    <Bell className={`w-5 h-5 ${totalCount > 0 ? 'text-primary' : ''}`} />
+                    <NotificationIcon
+                        size={22}
+                        hasNotification={totalCount > 0}
+                    />
 
                     {totalCount > 0 && (
                         <span className="absolute -top-1 -right-1 flex h-5 w-5">

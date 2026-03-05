@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import LoginForm from "@/components/auth/LoginForm";
+import HeroSection from "@/components/auth/HeroSection";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("Tailor"); // Default role
+  const [role, setRole] = useState("Tailor");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,24 +21,20 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // The AuthContext login function returns {success, role} and handles localStorage
       const result = await login(email, password);
 
-      // Check if login was successful
       if (!result || !result.success) {
         setError(result?.error || "Authentication failed. Please try again.");
         setLoading(false);
         return;
       }
 
-      // Verify the database role matches the dropdown selection
       if (result.role !== role) {
         setError(`Access Denied: Your account is not registered as a "${role}".`);
         setLoading(false);
         return;
       }
 
-      // Get user ID from localStorage (already set by AuthContext)
       const userId = localStorage.getItem('stitch_user_id');
 
       if (!userId) {
@@ -48,7 +45,6 @@ export default function LoginPage() {
 
       console.log(`Login successful: ${result.role} user`);
 
-      // ROLE-BASED REDIRECT LOGIC
       switch (result.role) {
         case "Admin":
           router.push("/admin");
@@ -71,7 +67,6 @@ export default function LoginPage() {
 
     } catch (err) {
       console.error("Login Error:", err);
-      // Friendly error messages
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
         setError("Incorrect email or password.");
       } else {
@@ -82,15 +77,23 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <LoginForm
-        email={email} setEmail={setEmail}
-        password={password} setPassword={setPassword}
-        role={role} setRole={setRole}
-        error={error}
-        onSubmit={handleLogin}
-        loading={loading}
-      />
+    <main className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+      {/* Left — Hero Panel */}
+      <div className="hidden lg:flex">
+        <HeroSection />
+      </div>
+
+      {/* Right — Login Form */}
+      <div className="flex items-center justify-center bg-white p-4">
+        <LoginForm
+          email={email} setEmail={setEmail}
+          password={password} setPassword={setPassword}
+          role={role} setRole={setRole}
+          error={error}
+          onSubmit={handleLogin}
+          loading={loading}
+        />
+      </div>
     </main>
   );
 }

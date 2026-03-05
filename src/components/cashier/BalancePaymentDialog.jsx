@@ -5,6 +5,7 @@ import { db } from "@/firebase";
 import { doc, updateDoc, arrayUnion, serverTimestamp } from "firebase/firestore";
 import { useAuth } from '@/context/AuthContext';
 import { IndianRupee, User, Scissors, CreditCard, Banknote, Smartphone, PackageCheck } from 'lucide-react';
+import { SuccessIcon } from '@/components/ui/animated-state-icons';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -148,7 +149,9 @@ export default function BalancePaymentDialog({ order, open, onClose }) {
                         disabled={processing}
                         className="font-bold px-6 bg-emerald-600 hover:bg-emerald-700"
                     >
-                        {processing ? "Processing..." : `Collect ₹${balanceAmount.toLocaleString()} & Deliver`}
+                        {processing
+                            ? <><SuccessIcon size={20} color="white" className="inline" /> Processing...</>
+                            : `Collect ₹${balanceAmount.toLocaleString()} & Deliver`}
                     </Button>
                 </DialogFooter>
             </DialogContent>

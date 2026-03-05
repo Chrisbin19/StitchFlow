@@ -18,6 +18,7 @@ import {
   PackageCheck,
   Truck,
 } from "lucide-react";
+import { SuccessIcon } from '@/components/ui/animated-state-icons';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -248,7 +249,7 @@ export default function OrderApprovalPage() {
               disabled={processing}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6"
             >
-              {processing ? "Updating..." : (<><PackageCheck className="w-4 h-4 mr-2" /> Mark Ready for Delivery</>)}
+              {processing ? <><SuccessIcon size={18} color="white" className="inline" /> Updating...</> : (<><PackageCheck className="w-4 h-4 mr-2" /> Mark Ready for Delivery</>)}
             </Button>
           ) : (
             <Button
@@ -256,7 +257,7 @@ export default function OrderApprovalPage() {
               disabled={processing}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8"
             >
-              {processing ? "Saving..." : "Approve & Send"}
+              {processing ? <><SuccessIcon size={18} color="white" className="inline" /> Saving...</> : "Approve & Send"}
             </Button>
           )}
         </div>

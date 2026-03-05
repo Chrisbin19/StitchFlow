@@ -13,14 +13,8 @@ import {
   updateDoc,
   writeBatch,
 } from "firebase/firestore";
-import {
-  Bell,
-  Scissors,
-  Clock,
-  CheckCircle2,
-  ChevronRight,
-  CheckCheck,
-} from "lucide-react";
+import { Scissors, Clock, CheckCircle2, ChevronRight, CheckCheck } from 'lucide-react';
+import { NotificationIcon } from '@/components/ui/animated-state-icons';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -81,8 +75,10 @@ export default function CutterNotificationBell({ userId, onSelectTask }) {
           size="icon"
           className="relative border-slate-200"
         >
-          <Bell
-            className={`w-5 h-5 ${notifications.length > 0 ? "text-indigo-600" : "text-slate-400"}`}
+          <NotificationIcon
+            size={22}
+            color={notifications.length > 0 ? '#4f46e5' : '#94a3b8'}
+            hasNotification={notifications.length > 0}
           />
           {notifications.length > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 w-4 bg-indigo-600 text-white text-[9px] font-bold rounded-full items-center justify-center ring-2 ring-white">

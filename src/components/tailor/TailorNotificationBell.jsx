@@ -14,7 +14,6 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import {
-  Bell,
   Needle, // You can use Needle or Shirt from lucide-react
   Shirt,
   Clock,
@@ -22,6 +21,7 @@ import {
   ChevronRight,
   CheckCheck,
 } from "lucide-react";
+import { NotificationIcon } from '@/components/ui/animated-state-icons';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -85,8 +85,10 @@ export default function TailorNotificationBell({ userId, onSelectTask }) {
           className="relative border-slate-200"
         >
           {/* 2. Theme: Emerald/Green for Tailoring */}
-          <Bell
-            className={`w-5 h-5 ${notifications.length > 0 ? "text-emerald-600" : "text-slate-400"}`}
+          <NotificationIcon
+            size={22}
+            color={notifications.length > 0 ? '#059669' : '#94a3b8'}
+            hasNotification={notifications.length > 0}
           />
           {notifications.length > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 w-4 bg-emerald-600 text-white text-[9px] font-bold rounded-full items-center justify-center ring-2 ring-white">

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from "@/firebase";
 import { collection, query, where, onSnapshot, orderBy, limit, writeBatch, doc, updateDoc } from "firebase/firestore";
-import { Bell, Scissors, Check, Clock, CheckCircle2, X, PackageCheck } from 'lucide-react';
+import { Scissors, Check, Clock, CheckCircle2, X, PackageCheck } from 'lucide-react';
+import { NotificationIcon } from '@/components/ui/animated-state-icons';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -126,8 +127,11 @@ export default function NotificationBell() {
           size="icon"
           className="relative w-10 h-10 rounded-full hover:bg-indigo-50 transition-all duration-200"
         >
-          <Bell className={`w-5 h-5 ${unreadCount > 0 ? 'text-indigo-600' : 'text-slate-500'}`} />
-
+          <NotificationIcon
+            size={22}
+            color={unreadCount > 0 ? '#4f46e5' : '#64748b'}
+            hasNotification={unreadCount > 0}
+          />
           {unreadCount > 0 && (
             <span className="absolute top-1.5 right-1.5 flex h-4 w-4">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
