@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/cashier/header';
 import PaymentStats from '@/components/cashier/payment-stats';
 import PendingPaymentsTable from '@/components/cashier/pending-payments-table';
+import DeliveryQueue from '@/components/cashier/DeliveryQueue';
 import ReceiptHistory from '@/components/cashier/receipt-history';
 import DailyCollection from '@/components/cashier/daily-collection';
 import PaymentModes from '@/components/cashier/payment-modes';
@@ -50,9 +51,10 @@ export default function CashierDashboard() {
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Pending Payments */}
-            <div className="lg:col-span-2">
+            {/* Left Column - Pending Payments & Delivery Queue */}
+            <div className="lg:col-span-2 space-y-6">
               <PendingPaymentsTable />
+              <DeliveryQueue />
             </div>
 
             {/* Right Column - Payment Modes and Daily Collection */}

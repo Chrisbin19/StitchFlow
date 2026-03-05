@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/firebase";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, serverTimestamp } from "firebase/firestore";
 import {
   ArrowLeft,
   Calendar,
@@ -15,6 +15,8 @@ import {
   Image as ImageIcon,
   ExternalLink,
   Clock,
+  PackageCheck,
+  Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -139,6 +141,7 @@ export default function OrderApprovalPage() {
           deliveryDate: deadline,
         },
         isRead: true,
+        isReadByAdmin: true,
         timeline: arrayUnion({
           stage: "Manager Approved",
           note: timelineNote,
@@ -156,6 +159,36 @@ export default function OrderApprovalPage() {
     } catch (error) {
       console.error("Error approving:", error);
       alert("Failed to approve order.");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  /**
+   * HANDLE MARK READY FOR DELIVERY:
+   * Admin reviews completed garment and approves for customer delivery.
+   */
+  const handleMarkReadyForDelivery = async () => {
+    if (!window.confirm("Mark this order as ready for customer delivery?")) return;
+    setProcessing(true);
+    try {
+      const orderRef = doc(db, "orders", id);
+      await updateDoc(orderRef, {
+        status: "READY_FOR_DELIVERY",
+        isReadByAdmin: true,
+        isReadByCashierDelivery: false,
+        updatedAt: serverTimestamp(),
+        timeline: arrayUnion({
+          stage: "Ready for Delivery",
+          note: "Quality reviewed by Admin. Ready for customer pickup & balance collection.",
+          timestamp: new Date(),
+        }),
+      });
+      alert("Order marked as Ready for Delivery. Cashier has been notified.");
+      router.back();
+    } catch (error) {
+      console.error("Error marking ready for delivery:", error);
+      alert("Failed to update order.");
     } finally {
       setProcessing(false);
     }
@@ -205,16 +238,27 @@ export default function OrderApprovalPage() {
           <Button
             variant="outline"
             className="text-slate-500 border-slate-200 hover:bg-slate-50"
+            onClick={() => router.back()}
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={processing}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8"
-          >
-            {processing ? "Saving..." : "Approve & Send"}
-          </Button>
+          {order.status === "STITCHING_COMPLETED" ? (
+            <Button
+              onClick={handleMarkReadyForDelivery}
+              disabled={processing}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6"
+            >
+              {processing ? "Updating..." : (<><PackageCheck className="w-4 h-4 mr-2" /> Mark Ready for Delivery</>)}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleConfirm}
+              disabled={processing}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8"
+            >
+              {processing ? "Saving..." : "Approve & Send"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -371,92 +415,159 @@ export default function OrderApprovalPage() {
         {/* RIGHT COLUMN: MANAGER'S DECISION CONSOLE */}
         <div className="lg:col-span-1">
           <div className="sticky top-24 space-y-4">
-            <Card className="border-indigo-100 shadow-lg ring-1 ring-indigo-50">
-              <CardHeader className="bg-indigo-600 text-white rounded-t-lg py-4">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" /> Order Approval
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                {/* Billing Section */}
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
+
+            {/* --- STITCHING COMPLETED: Show delivery approval panel --- */}
+            {order.status === "STITCHING_COMPLETED" ? (
+              <Card className="border-emerald-200 shadow-lg ring-1 ring-emerald-50">
+                <CardHeader className="bg-emerald-600 text-white rounded-t-lg py-4">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2">
+                    <PackageCheck className="w-4 h-4" /> Delivery Review
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-5">
+                  {/* Status Summary */}
+                  <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                      <span className="font-bold text-emerald-900">Stitching Complete</span>
+                    </div>
+                    <p className="text-xs text-emerald-700 leading-relaxed">
+                      The tailor has finished this garment. Review the order and approve it for customer delivery.
+                    </p>
+                  </div>
+
+                  {/* Payment Summary */}
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Payment Summary</p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500">Total Bill</span>
+                      <span className="font-bold text-slate-900">₹{order.financial?.totalPrice?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500">Advance Paid</span>
+                      <span className="font-medium text-emerald-600">₹{order.financial?.advanceAmount?.toLocaleString()}</span>
+                    </div>
+                    <hr className="border-slate-100" />
+                    <div className="flex justify-between text-sm">
+                      <span className="font-bold text-slate-900">Balance Due</span>
+                      <span className="font-bold text-lg text-orange-600">₹{order.financial?.balanceAmount?.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Delivery Info */}
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="w-4 h-4 text-slate-400" />
+                      <span className="text-slate-500">Delivery Date:</span>
+                      <span className="font-bold text-slate-900">{order.workflow?.deliveryDate || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Truck className="w-4 h-4 text-slate-400" />
+                      <span className="text-slate-500">Priority:</span>
+                      <span className="font-bold text-slate-900">{order.workflow?.priority || 'Normal'}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <Button
+                    onClick={handleMarkReadyForDelivery}
+                    disabled={processing}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 shadow-md"
+                  >
+                    {processing ? "Updating..." : (<><Truck className="w-4 h-4 mr-2" /> Approve for Delivery</>)}
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              /* --- PENDING APPROVAL: Show original approval panel --- */
+              <Card className="border-indigo-100 shadow-lg ring-1 ring-indigo-50">
+                <CardHeader className="bg-indigo-600 text-white rounded-t-lg py-4">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> Order Approval
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  {/* Billing Section */}
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        <IndianRupee className="w-3 h-3" /> Total Stitching Bill
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-slate-400 font-bold">
+                          ₹
+                        </span>
+                        <Input
+                          type="number"
+                          value={price}
+                          onChange={(e) => setPrice(e.target.value)}
+                          className="pl-7 font-bold text-lg h-11 border-indigo-200 focus:ring-indigo-500/20"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">
+                        Required Advance
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-slate-400 font-bold">
+                          ₹
+                        </span>
+                        <Input
+                          type="number"
+                          value={advance}
+                          onChange={(e) => setAdvance(e.target.value)}
+                          className="pl-7 font-semibold h-10 bg-slate-50 border-slate-200"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr className="border-slate-100" />
+
+                  {/* Delivery Schedule */}
+                  <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      <IndianRupee className="w-3 h-3" /> Total Stitching Bill
+                      <Calendar className="w-3 h-3" /> Final Delivery Date
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-slate-400 font-bold">
-                        ₹
-                      </span>
-                      <Input
-                        type="number"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        className="pl-7 font-bold text-lg h-11 border-indigo-200 focus:ring-indigo-500/20"
-                      />
-                    </div>
+                    <Input
+                      type="date"
+                      value={deadline}
+                      onChange={(e) => setDeadline(e.target.value)}
+                      className="h-10 border-indigo-100"
+                    />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">
-                      Required Advance
+                  {/* Internal Communication */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      Internal Admin Note
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-slate-400 font-bold">
-                        ₹
-                      </span>
-                      <Input
-                        type="number"
-                        value={advance}
-                        onChange={(e) => setAdvance(e.target.value)}
-                        className="pl-7 font-semibold h-10 bg-slate-50 border-slate-200"
-                      />
-                    </div>
+                    <Textarea
+                      placeholder="Instructions for the cashier or cutting department..."
+                      className="resize-none h-24 text-sm bg-slate-50/50"
+                      value={adminNote}
+                      onChange={(e) => setAdminNote(e.target.value)}
+                    />
                   </div>
-                </div>
 
-                <hr className="border-slate-100" />
-
-                {/* Delivery Schedule */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                    <Calendar className="w-3 h-3" /> Final Delivery Date
-                  </label>
-                  <Input
-                    type="date"
-                    value={deadline}
-                    onChange={(e) => setDeadline(e.target.value)}
-                    className="h-10 border-indigo-100"
-                  />
-                </div>
-
-                {/* Internal Communication */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    Internal Admin Note
-                  </label>
-                  <Textarea
-                    placeholder="Instructions for the cashier or cutting department..."
-                    className="resize-none h-24 text-sm bg-slate-50/50"
-                    value={adminNote}
-                    onChange={(e) => setAdminNote(e.target.value)}
-                  />
-                </div>
-
-                {/* Approve Button */}
-                <Button
-                  onClick={handleConfirm}
-                  disabled={processing}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-12 shadow-md"
-                >
-                  {processing ? "Confirming..." : "Approve & Send to Cashier"}
-                </Button>
-              </CardContent>
-            </Card>
+                  {/* Approve Button */}
+                  <Button
+                    onClick={handleConfirm}
+                    disabled={processing}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-12 shadow-md"
+                  >
+                    {processing ? "Confirming..." : "Approve & Send to Cashier"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             <p className="text-[10px] text-slate-400 text-center px-4">
-              Approving this order will immediately notify the Cashier to
-              initiate payment collection.
+              {order.status === "STITCHING_COMPLETED"
+                ? "Approving will notify the Cashier to collect balance and deliver."
+                : "Approving this order will immediately notify the Cashier to initiate payment collection."}
             </p>
           </div>
         </div>

@@ -110,6 +110,7 @@ export default function AssignedGarmentsTable({ userId }) {
       await updateDoc(doc(db, "orders", orderId), {
         status: "STITCHING_COMPLETED",
         "workflow.progress": 100,
+        isReadByAdmin: false,
         updatedAt: serverTimestamp(),
         timeline: arrayUnion({
           stage: "Stitching Completed",
