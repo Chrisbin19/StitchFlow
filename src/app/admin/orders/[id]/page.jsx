@@ -17,6 +17,8 @@ import {
   Clock,
   PackageCheck,
   Truck,
+  Sparkles,
+  Loader2 as SpinIcon,
 } from "lucide-react";
 import { SuccessIcon } from '@/components/ui/animated-state-icons';
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { getPricingHistory } from '@/lib/getPricingHistory';
 
 /**
  * RATE_CARD: Default pricing for StitchFlow services.
@@ -54,6 +57,10 @@ export default function OrderApprovalPage() {
   const [advance, setAdvance] = useState("");
   const [deadline, setDeadline] = useState("");
   const [adminNote, setAdminNote] = useState("");
+
+  const [aiSuggestion, setAiSuggestion] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showAiCard, setShowAiCard] = useState(false);
 
   // 🔒 ROUTE GUARD: Only Admin and Manager can access
   useEffect(() => {
@@ -110,6 +117,42 @@ export default function OrderApprovalPage() {
       setAdvance(Math.round(price * 0.5));
     }
   }, [price, order]);
+
+  const handleSuggestPrice = async () => {
+    setAiLoading(true);
+    setShowAiCard(false);
+
+    try {
+      // Fetch historical pricing data
+      const history = await getPricingHistory(
+        order.product?.dressType,
+        order.product?.material
+      );
+
+      const response = await fetch('/api/ai/suggest-price', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dressType: order.product?.dressType,
+          material: order.product?.material,
+          fabricSource: order.product?.fabricSource,
+          consumption: order.product?.consumption,
+          historicalOrders: history,
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAiSuggestion(data.suggestion);
+        setShowAiCard(true);
+      }
+    } catch (err) {
+      console.error('AI suggestion failed:', err);
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   /**
    * HANDLE APPROVAL:
@@ -491,9 +534,84 @@ export default function OrderApprovalPage() {
                   {/* Billing Section */}
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                        <IndianRupee className="w-3 h-3" /> Total Stitching Bill
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                          <IndianRupee className="w-3 h-3" /> Total Stitching Bill
+                        </label>
+
+                        {/* AI Suggest Button */}
+                        <button
+                          type="button"
+                          onClick={handleSuggestPrice}
+                          disabled={aiLoading}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold transition-all disabled:opacity-50"
+                          style={{
+                            background: 'rgba(124,58,237,0.10)',
+                            border: '1px solid rgba(124,58,237,0.30)',
+                            color: '#7C3AED',
+                          }}
+                        >
+                          {aiLoading
+                            ? <><SpinIcon className="w-3 h-3 animate-spin" /> Thinking...</>
+                            : <><Sparkles className="w-3 h-3" /> AI Suggest</>
+                          }
+                        </button>
+                      </div>
+
+                      {/* AI Suggestion Card — appears below the button */}
+                      {showAiCard && aiSuggestion && (
+                        <div className="p-3 rounded-xl border mb-2 shadow-sm"
+                          style={{
+                            background: 'rgba(124,58,237,0.03)',
+                            borderColor: 'rgba(124,58,237,0.25)',
+                          }}>
+
+                          {/* Price range */}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wide text-violet-600">
+                              AI Recommendation
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold capitalize"
+                              style={{
+                                background: aiSuggestion.confidence === 'high'
+                                  ? 'rgba(5,150,105,0.12)' : 'rgba(217,119,6,0.12)',
+                                color: aiSuggestion.confidence === 'high' ? '#059669' : '#D97706',
+                              }}>
+                              {aiSuggestion.confidence} confidence
+                            </span>
+                          </div>
+
+                          {/* Suggested price + range */}
+                          <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-2xl font-black text-violet-700">
+                              ₹{aiSuggestion.suggestedPrice}
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              Range: ₹{aiSuggestion.minPrice} – ₹{aiSuggestion.maxPrice}
+                            </span>
+                          </div>
+
+                          {/* Reasoning */}
+                          <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
+                            {aiSuggestion.reasoning}
+                          </p>
+
+                          {/* Apply button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPrice(aiSuggestion.suggestedPrice);
+                              setAdvance(Math.round(aiSuggestion.suggestedPrice * 0.5));
+                              setShowAiCard(false);
+                            }}
+                            className="w-full py-2 rounded-lg text-xs font-bold text-white transition-all hover:scale-[1.01]"
+                            style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}
+                          >
+                            Apply ₹{aiSuggestion.suggestedPrice} →
+                          </button>
+                        </div>
+                      )}
+
                       <div className="relative">
                         <span className="absolute left-3 top-2.5 text-slate-400 font-bold">
                           ₹
