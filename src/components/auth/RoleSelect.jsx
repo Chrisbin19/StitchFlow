@@ -1,88 +1,45 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ShieldCheck, Banknote, Scissors, Shirt } from "lucide-react";
-
-const roles = [
-  { id: "Admin", label: "Admin", sublabel: "Management", icon: ShieldCheck, color: "indigo" },
-  { id: "Supervisor/Manager", label: "Manager", sublabel: "Supervisor", icon: ShieldCheck, color: "violet" },
-  { id: "Cashier", label: "Cashier", sublabel: "Payments", icon: Banknote, color: "emerald" },
-  { id: "Cutter", label: "Cutter", sublabel: "Cutting", icon: Scissors, color: "orange" },
-  { id: "Tailor", label: "Tailor", sublabel: "Stitching", icon: Shirt, color: "sky" },
-];
-
-const colorMap = {
-  indigo: {
-    selected: "border-indigo-500 bg-indigo-50 shadow-indigo-100",
-    icon: "text-indigo-600 bg-indigo-100",
-    text: "text-indigo-700",
-  },
-  violet: {
-    selected: "border-violet-500 bg-violet-50 shadow-violet-100",
-    icon: "text-violet-600 bg-violet-100",
-    text: "text-violet-700",
-  },
-  emerald: {
-    selected: "border-emerald-500 bg-emerald-50 shadow-emerald-100",
-    icon: "text-emerald-600 bg-emerald-100",
-    text: "text-emerald-700",
-  },
-  orange: {
-    selected: "border-orange-500 bg-orange-50 shadow-orange-100",
-    icon: "text-orange-600 bg-orange-100",
-    text: "text-orange-700",
-  },
-  sky: {
-    selected: "border-sky-500 bg-sky-50 shadow-sky-100",
-    icon: "text-sky-600 bg-sky-100",
-    text: "text-sky-700",
-  },
-};
+import { AlertCircle, Scissors, Shirt, Banknote } from "lucide-react";
 
 export default function RoleSelect({ value, onChange }) {
-  return (
-    <div>
-      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-        Select Your Role
-      </label>
-      <div className="grid grid-cols-5 gap-2">
-        {roles.map((role) => {
-          const Icon = role.icon;
-          const isSelected = value === role.id;
-          const colors = colorMap[role.color];
+  const roles = [
+    { id: "Admin", label: "Admin", icon: AlertCircle, color: "#3B82F6" },   // Blue
+    { id: "Cashier", label: "Cashier", icon: Banknote, color: "#7C3AED" },    // Violet
+    { id: "Cutter", label: "Cutter", icon: Scissors, color: "#F97316" },      // Orange
+    { id: "Tailor", label: "Tailor", icon: Shirt, color: "#10B981" },         // Emerald
+  ];
 
-          return (
-            <motion.button
-              key={role.id}
-              type="button"
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onChange(role.id)}
-              className={`
-                relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer
-                ${isSelected
-                  ? `${colors.selected} shadow-md border-2`
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                }
-              `}
+  return (
+    <div className="flex gap-2 w-full">
+      {roles.map((r) => {
+        const isSel = value === r.id;
+
+        return (
+          <button
+            key={r.id}
+            type="button"
+            onClick={() => onChange(r.id)}
+            className="flex-1 h-[72px] rounded-xl flex flex-col items-center justify-center transition-all duration-200 group"
+            style={{
+              background: isSel ? 'rgba(124,58,237,0.15)' : '#1A2236',
+              border: isSel ? '1.5px solid #7C3AED' : '1px solid rgba(255,255,255,0.08)',
+              boxShadow: isSel ? '0 0 16px rgba(124,58,237,0.20)' : 'none',
+            }}
+          >
+            <r.icon
+              className="w-5 h-5 mb-1.5 transition-colors"
+              style={{ color: isSel ? r.color : '#8B95B0' }}
+            />
+            <span
+              className="text-[10px] sm:text-[11px] font-medium transition-colors font-body"
+              style={{ color: isSel ? '#FFFFFF' : '#8B95B0' }}
             >
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isSelected ? colors.icon : "bg-gray-100 text-gray-400"}`}>
-                <Icon className="w-4 h-4" />
-              </div>
-              <span className={`text-[10px] font-bold leading-tight text-center ${isSelected ? colors.text : "text-gray-500"}`}>
-                {role.label}
-              </span>
-              {isSelected && (
-                <motion.div
-                  layoutId="roleIndicator"
-                  className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full"
-                  style={{ backgroundColor: `var(--color-${role.color}-500, #6366f1)` }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-            </motion.button>
-          );
-        })}
-      </div>
+              {r.label}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -3,200 +3,37 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Package, Bell, IndianRupee, Users,
-    CheckCircle2, Clock, ArrowRight,
-    Scissors, Shirt, Banknote, Smartphone,
-    TrendingUp, AlertCircle, PackageCheck, Truck,
+    Package, Clock, CheckCircle2,
+    AlertCircle, Banknote,
+    Scissors, Shirt, Truck, TrendingUp, IndianRupee,
 } from "lucide-react";
 
 const slides = [
     {
         id: 0,
-        tag: "Order Management",
-        title: "Every Garment,\nTracked End-to-End",
-        color: "from-indigo-500/20 to-indigo-600/5",
-        accent: "bg-indigo-500",
-        tagColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
-        content: (
-            <div className="space-y-2.5 w-full">
-                {[
-                    { label: "Rahul K. — Suit", stage: "Stitching", color: "bg-violet-500", icon: Shirt },
-                    { label: "Priya M. — Blouse", stage: "Ready", color: "bg-emerald-500", icon: CheckCircle2 },
-                    { label: "Arjun S. — Sherwani", stage: "Cutting", color: "bg-orange-500", icon: Scissors },
-                    { label: "Meera T. — Saree", stage: "Delivered", color: "bg-blue-500", icon: Truck },
-                ].map((o, i) => (
-                    <motion.div
-                        key={o.label}
-                        initial={{ opacity: 0, x: -16 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.08 }}
-                        className="flex items-center gap-2.5 bg-white/5 rounded-xl px-3 py-2"
-                    >
-                        <div className={`w-1.5 h-8 rounded-full ${o.color} flex-shrink-0`} />
-                        <o.icon className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
-                        <span className="text-white/80 text-xs flex-1">{o.label}</span>
-                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold text-white ${o.color}`}>
-                            {o.stage}
-                        </span>
-                    </motion.div>
-                ))}
-                <div className="grid grid-cols-3 gap-2 mt-3">
-                    {[
-                        { label: "Total", value: "128", icon: Package, color: "text-indigo-400" },
-                        { label: "Active", value: "42", icon: Clock, color: "text-orange-400" },
-                        { label: "Done", value: "86", icon: CheckCircle2, color: "text-emerald-400" },
-                    ].map((s) => (
-                        <div key={s.label} className="bg-white/5 rounded-xl p-2 text-center">
-                            <s.icon className={`w-3.5 h-3.5 ${s.color} mx-auto mb-1`} />
-                            <p className="text-white font-bold text-sm">{s.value}</p>
-                            <p className="text-white/30 text-[9px]">{s.label}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        ),
-    },
-    {
-        id: 1,
-        tag: "Smart Notifications",
-        title: "Right Person,\nRight Alert, Right Time",
-        color: "from-violet-500/20 to-violet-600/5",
-        accent: "bg-violet-500",
-        tagColor: "bg-violet-500/20 text-violet-300 border-violet-500/30",
-        content: (
-            <div className="space-y-2.5 w-full">
-                {[
-                    {
-                        role: "Admin", icon: AlertCircle, ringColor: "ring-amber-500/40",
-                        iconColor: "text-amber-400", bg: "bg-amber-500/10",
-                        msg: "New order needs approval", sub: "Rahul K. · just now", dot: "bg-amber-400",
-                    },
-                    {
-                        role: "Tailor", icon: Shirt, ringColor: "ring-emerald-500/40",
-                        iconColor: "text-emerald-400", bg: "bg-emerald-500/10",
-                        msg: "New garment assigned to you", sub: "Blouse for Priya M. · 2m ago", dot: "bg-emerald-400",
-                    },
-                    {
-                        role: "Cashier", icon: Banknote, ringColor: "ring-blue-500/40",
-                        iconColor: "text-blue-400", bg: "bg-blue-500/10",
-                        msg: "Collect ₹500 advance payment", sub: "Order #128 · 5m ago", dot: "bg-blue-400",
-                    },
-                ].map((n, i) => (
-                    <motion.div
-                        key={n.role}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className={`flex items-start gap-3 ${n.bg} rounded-xl p-3 ring-1 ${n.ringColor}`}
-                    >
-                        <div className="relative flex-shrink-0">
-                            <div className={`w-8 h-8 rounded-full ` + n.bg + ` flex items-center justify-center`}>
-                                <n.icon className={`w-4 h-4` + ` ` + n.iconColor} />
-                            </div>
-                            <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${n.dot}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mb-0.5">{n.role}</p>
-                            <p className="text-white text-xs font-medium leading-tight truncate">{n.msg}</p>
-                            <p className="text-white/30 text-[9px] mt-0.5">{n.sub}</p>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
-        ),
-    },
-    {
-        id: 2,
-        tag: "Payment Flow",
-        title: "Advance to Delivery,\nEvery Rupee Tracked",
-        color: "from-emerald-500/20 to-emerald-600/5",
-        accent: "bg-emerald-500",
-        tagColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-        content: (
-            <div className="space-y-3 w-full">
-                {/* Payment stages */}
-                <div className="flex items-center gap-1.5 justify-between">
-                    {[
-                        { label: "Approved", icon: CheckCircle2, color: "text-emerald-400", done: true },
-                        { done: true, arrow: true },
-                        { label: "Advance", icon: Banknote, color: "text-blue-400", done: true },
-                        { done: true, arrow: true },
-                        { label: "Delivery", icon: Smartphone, color: "text-violet-400", done: false },
-                    ].map((s, i) =>
-                        s.arrow ? (
-                            <ArrowRight key={i} className="w-3 h-3 text-white/20 flex-shrink-0" />
-                        ) : (
-                            <div key={i} className={`flex flex-col items-center gap-1 flex-1 p-2 rounded-xl ${s.done ? "bg-white/10" : "bg-white/5"}`}>
-                                <s.icon className={`w-4 h-4 ${s.done ? s.color : "text-white/20"}`} />
-                                <span className={`text-[9px] font-bold ${s.done ? "text-white/70" : "text-white/20"}`}>{s.label}</span>
-                            </div>
-                        )
-                    )}
-                </div>
-
-                {/* Active receipt */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.15 }}
-                    className="bg-white/5 rounded-xl p-3 border border-white/10"
-                >
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-white/50 text-[10px] font-bold uppercase tracking-wider">Order Summary</span>
-                        <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">Paid</span>
-                    </div>
-                    {[
-                        ["Total Bill", "₹1,200"],
-                        ["Advance Paid", "₹600"],
-                        ["Balance Due", "₹600"],
-                    ].map(([k, v]) => (
-                        <div key={k} className="flex justify-between text-xs py-1 border-b border-white/5 last:border-0">
-                            <span className="text-white/40">{k}</span>
-                            <span className="text-white font-semibold">{v}</span>
-                        </div>
-                    ))}
-                </motion.div>
-
-                <div className="grid grid-cols-2 gap-2">
-                    {[
-                        { label: "This Month", value: "₹84K", icon: TrendingUp, color: "text-emerald-400" },
-                        { label: "Pending", value: "₹12K", icon: IndianRupee, color: "text-orange-400" },
-                    ].map(s => (
-                        <div key={s.label} className="bg-white/5 rounded-xl p-2.5">
-                            <s.icon className={`w-3.5 h-3.5 ${s.color} mb-1`} />
-                            <p className="text-white text-sm font-bold">{s.value}</p>
-                            <p className="text-white/30 text-[9px]">{s.label}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        ),
-    },
-    {
-        id: 3,
-        tag: "Team Workflow",
+        tag: "TEAM WORKFLOW",
         title: "Every Role,\nOne Seamless Pipeline",
-        color: "from-orange-500/20 to-orange-600/5",
-        accent: "bg-orange-500",
-        tagColor: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+        color: "from-indigo-500/20 to-indigo-600/5",
+        accent: "bg-[#3B82F6]", // Blue for teamwork
+        tagColor: "bg-[#7C3AED] text-white", // Violet pill
         content: (
             <div className="space-y-2.5 w-full">
                 {[
                     {
-                        role: "Admin / Manager", icon: AlertCircle, color: "bg-indigo-500",
-                        actions: ["Approve orders", "Assign tailors", "Review for delivery"],
+                        role: "Admin / Manager", icon: AlertCircle, color: "bg-[#3B82F6]", // Blue
+                        actions: ["Approve orders", "Assign tailors", "Review delivery"],
                     },
                     {
-                        role: "Cutter", icon: Scissors, color: "bg-orange-500",
-                        actions: ["Receive cutting tasks", "Mark cutting done"],
+                        role: "Cutter", icon: Scissors, color: "bg-[#F97316]", // Orange
+                        actions: ["Receive tasks", "Mark cutting done"],
                     },
                     {
-                        role: "Tailor", icon: Shirt, color: "bg-violet-500",
-                        actions: ["Stitch assigned garments", "Mark stitching complete"],
+                        role: "Tailor", icon: Shirt, color: "bg-[#10B981]", // Emerald
+                        actions: ["Stitch garments", "Complete stitching"],
                     },
                     {
-                        role: "Cashier", icon: Banknote, color: "bg-emerald-500",
-                        actions: ["Collect advance", "Deliver & collect balance"],
+                        role: "Cashier", icon: Banknote, color: "bg-[#7C3AED]", // Violet
+                        actions: ["Collect advance", "Final delivery"],
                     },
                 ].map((r, i) => (
                     <motion.div
@@ -204,18 +41,113 @@ const slides = [
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.07 }}
-                        className="flex items-start gap-2.5 bg-white/5 rounded-xl px-3 py-2.5"
+                        className="flex items-start gap-3 bg-[rgba(255,255,255,0.02)] rounded-[12px] px-3 py-2.5"
                     >
-                        <div className={`w-7 h-7 rounded-lg ${r.color} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                        <div className={`w-[26px] h-[26px] rounded-full ${r.color} flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_2px_8px_rgba(0,0,0,0.2)]`}>
                             <r.icon className="w-3.5 h-3.5 text-white" />
                         </div>
                         <div>
-                            <p className="text-white text-[11px] font-bold mb-1">{r.role}</p>
+                            <p className="text-white text-[12px] font-bold mb-1.5" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>{r.role}</p>
                             <div className="flex flex-wrap gap-1">
                                 {r.actions.map(a => (
-                                    <span key={a} className="text-[9px] text-white/40 bg-white/5 rounded-full px-2 py-0.5">{a}</span>
+                                    <span key={a} className="text-[9.5px] font-medium text-[#8B95B0] bg-[rgba(255,255,255,0.08)] rounded-full px-2.5 py-0.5">{a}</span>
                                 ))}
                             </div>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+        ),
+    },
+    {
+        id: 1,
+        tag: "Order Management",
+        title: "Every Garment,\nTracked End-to-End",
+        color: "from-emerald-500/20 to-emerald-600/5",
+        accent: "bg-[#10B981]", // Emerald
+        tagColor: "bg-[#10B981] text-white", // Emerald pill
+        content: (
+            <div className="space-y-2 w-full">
+                {[
+                    { label: "Rahul K. — Suit", stage: "Stitching", color: "bg-[#10B981]", icon: Shirt },
+                    { label: "Priya M. — Blouse", stage: "Ready", color: "bg-[#3B82F6]", icon: CheckCircle2 },
+                    { label: "Arjun S. — Sherwani", stage: "Cutting", color: "bg-[#F97316]", icon: Scissors },
+                    { label: "Meera T. — Saree", stage: "Delivered", color: "bg-[#7C3AED]", icon: Truck },
+                ].map((o, i) => (
+                    <motion.div
+                        key={o.label}
+                        initial={{ opacity: 0, x: -16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.08 }}
+                        className="flex items-center gap-3 bg-[rgba(255,255,255,0.02)] rounded-[12px] px-3 py-2"
+                    >
+                        <div className={`w-1.5 h-7 rounded-sm ${o.color} flex-shrink-0`} />
+                        <o.icon className="w-3.5 h-3.5 text-[#4A5568] flex-shrink-0" />
+                        <span className="text-[#F0EBE3] text-[12px] flex-1 font-medium">{o.label}</span>
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold text-white ${o.color}`}>
+                            {o.stage}
+                        </span>
+                    </motion.div>
+                ))}
+                <div className="grid grid-cols-3 gap-2 mt-[14px]">
+                    {[
+                        { label: "Total", value: "128", icon: Package, color: "text-[#3B82F6]" },
+                        { label: "Active", value: "42", icon: Clock, color: "text-[#FBBF24]" },
+                        { label: "Done", value: "86", icon: CheckCircle2, color: "text-[#10B981]" },
+                    ].map((s) => (
+                        <div key={s.label} className="bg-[rgba(255,255,255,0.02)] rounded-[12px] p-2 text-center border border-[rgba(255,255,255,0.03)]">
+                            <s.icon className={`w-3.5 h-3.5 ${s.color} mx-auto mb-1`} />
+                            <p className="text-white font-bold text-[14px] leading-tight" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>{s.value}</p>
+                            <p className="text-[#4A5568] font-bold uppercase tracking-widest text-[8px] mt-0.5">{s.label}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        ),
+    },
+    {
+        id: 2,
+        tag: "Smart Notifications",
+        title: "Right Person,\nRight Alert, Right Time",
+        color: "from-amber-500/10 to-amber-600/5",
+        accent: "bg-[#F97316]", // Orange
+        tagColor: "bg-[#FBBF24] text-amber-950", // Amber pill
+        content: (
+            <div className="space-y-3 w-full">
+                {[
+                    {
+                        role: "Admin", icon: AlertCircle,
+                        iconColor: "text-[#FBBF24]", bg: "bg-[rgba(251,191,36,0.15)]", border: "border-[rgba(251,191,36,0.3)]",
+                        msg: "Order needs approval", sub: "Rahul K. · just now", dot: "bg-[#FBBF24]",
+                    },
+                    {
+                        role: "Tailor", icon: Shirt,
+                        iconColor: "text-[#10B981]", bg: "bg-[rgba(16,185,129,0.15)]", border: "border-[rgba(16,185,129,0.3)]",
+                        msg: "Garment assigned to you", sub: "Blouse for Priya M. · 2m ago", dot: "bg-[#10B981]",
+                    },
+                    {
+                        role: "Cashier", icon: Banknote,
+                        iconColor: "text-[#3B82F6]", bg: "bg-[rgba(59,130,246,0.15)]", border: "border-[rgba(59,130,246,0.3)]",
+                        msg: "Collect ₹500 advance", sub: "Order #128 · 5m ago", dot: "bg-[#3B82F6]",
+                    },
+                ].map((n, i) => (
+                    <motion.div
+                        key={n.role}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className={`flex items-start gap-3 bg-[rgba(255,255,255,0.02)] rounded-[12px] p-3 border border-[rgba(255,255,255,0.03)]`}
+                    >
+                        <div className="relative flex-shrink-0">
+                            <div className={`w-8 h-8 rounded-full ${n.bg} border ${n.border} flex items-center justify-center`}>
+                                <n.icon className={`w-4 h-4 ${n.iconColor}`} />
+                            </div>
+                            <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-[#1A1F35] ${n.dot}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[9px] font-bold text-[#8B95B0] uppercase tracking-widest mb-0.5">{n.role}</p>
+                            <p className="text-[#F0EBE3] text-[12px] font-medium leading-tight truncate">{n.msg}</p>
+                            <p className="text-[#4A5568] font-medium text-[10px] mt-0.5">{n.sub}</p>
                         </div>
                     </motion.div>
                 ))}
@@ -232,7 +164,7 @@ export default function FeatureCarousel() {
         const timer = setInterval(() => {
             setDirection(1);
             setCurrent((prev) => (prev + 1) % slides.length);
-        }, 3800);
+        }, 3500);
         return () => clearInterval(timer);
     }, []);
 
@@ -244,20 +176,21 @@ export default function FeatureCarousel() {
     const slide = slides[current];
 
     return (
-        <div className="w-full flex flex-col gap-3">
-            {/* Card */}
-            <div
-                className={`relative w-full rounded-2xl overflow-hidden border border-white/10 bg-slate-900 min-h-[340px]`}
+        <div className="w-full flex justify-center pb-8 pt-4">
+            <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
+                className={`relative w-full max-w-[420px] rounded-[16px] overflow-hidden border border-[rgba(255,255,255,0.14)] bg-[#1A1F35] min-h-[360px] flex flex-col`}
                 style={{
-                    boxShadow: "0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px rgba(0,0,0,0.4)",
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.40)",
                 }}
             >
-                {/* Gradient tint per slide */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${slide.color} pointer-events-none`} />
+                {/* Subtle Inner Glow */}
+                <div className="absolute top-0 left-0 right-0 h-32 pointer-events-none opacity-40 bg-gradient-to-b from-[rgba(124,58,237,0.15)] to-transparent" />
 
-                <div className="relative z-10 p-5">
-                    {/* Tag + title */}
-                    <div className="mb-4">
+                <div className="relative z-10 p-6 flex-1 flex flex-col">
+                    {/* Header: Tag + title */}
+                    <div className="mb-5 border-b border-[rgba(255,255,255,0.06)] pb-4">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={`tag-${current}`}
@@ -266,25 +199,23 @@ export default function FeatureCarousel() {
                                 exit={{ opacity: 0, y: 8 }}
                                 transition={{ duration: 0.25 }}
                             >
-                                <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border ${slide.tagColor}`}>
+                                <span className={`text-[9.5px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-full ${slide.tagColor}`}>
                                     {slide.tag}
                                 </span>
-                                <p className="text-white font-bold text-sm mt-2 leading-snug whitespace-pre-line">
-                                    {slide.title}
-                                </p>
                             </motion.div>
                         </AnimatePresence>
                     </div>
 
-                    {/* Slide content — fixed height so transitions don't cause layout shift */}
-                    <div className="min-h-[200px]">
+                    {/* Slide content block */}
+                    <div className="flex-1 relative">
                         <AnimatePresence mode="wait" custom={direction}>
                             <motion.div
                                 key={`content-${current}`}
                                 custom={direction}
-                                initial={{ opacity: 0, x: direction * 30 }}
+                                className="absolute inset-0"
+                                initial={{ opacity: 0, x: direction * 20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: direction * -30 }}
+                                exit={{ opacity: 0, x: direction * -20 }}
                                 transition={{ duration: 0.3, ease: "easeInOut" }}
                             >
                                 {slide.content}
@@ -292,27 +223,28 @@ export default function FeatureCarousel() {
                         </AnimatePresence>
                     </div>
                 </div>
-            </div>
 
-            {/* Dots */}
-            <div className="flex items-center justify-center gap-2">
-                {slides.map((s, i) => (
-                    <button
-                        key={i}
-                        onClick={() => goTo(i)}
-                        className="group flex items-center"
-                    >
-                        <motion.div
-                            animate={{
-                                width: i === current ? 20 : 6,
-                                opacity: i === current ? 1 : 0.35,
-                            }}
-                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                            className={`h-1.5 rounded-full ${i === current ? s.accent : "bg-white/30"}`}
-                        />
-                    </button>
-                ))}
-            </div>
+                {/* Dots placed exactly at the bottom inner edge of the card */}
+                <div className="absolute bottom-5 left-0 right-0 flex items-center justify-center gap-2 z-20">
+                    {slides.map((s, i) => (
+                        <button
+                            key={i}
+                            onClick={() => goTo(i)}
+                            className="group flex items-center p-1"
+                        >
+                            <motion.div
+                                animate={{
+                                    width: i === current ? 24 : 6,
+                                    opacity: i === current ? 1 : 0.35,
+                                    backgroundColor: i === current ? '#7C3AED' : '#FFFFFF'
+                                }}
+                                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                                className={`h-1.5 rounded-full`}
+                            />
+                        </button>
+                    ))}
+                </div>
+            </motion.div>
         </div>
     );
 }
