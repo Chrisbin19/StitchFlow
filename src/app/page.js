@@ -77,14 +77,14 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-      {/* Left — Hero Panel */}
-      <div className="hidden lg:flex">
+    <main className="min-h-screen flex flex-col lg:grid lg:grid-cols-2">
+      {/* Left — Hero Panel (visible on all screens) */}
+      <div className="flex min-h-[45vh] lg:min-h-screen">
         <HeroSection />
       </div>
 
       {/* Right — Login Form */}
-      <div className="flex items-center justify-center bg-white p-4">
+      <div className="flex items-center justify-center bg-white p-4 py-10 lg:py-0">
         <LoginForm
           email={email} setEmail={setEmail}
           password={password} setPassword={setPassword}
