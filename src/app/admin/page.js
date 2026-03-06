@@ -9,17 +9,29 @@ import { PendingOrdersTable } from '@/components/pending-orders-table';
 import { TasksList } from '@/components/tasks-list';
 import { PaymentOverview } from '@/components/payment-overview';
 import { UpcomingDeliveries } from '@/components/upcoming-deliveries';
-import { Button } from '@/components/ui/button';
 import { Users } from 'lucide-react';
 import Link from 'next/link';
 
 const ALLOWED_ROLES = ['Admin', 'Manager'];
 
+const ShimmerStyle = () => (
+  <style>{`
+    @keyframes adm-shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    .adm-btn-shimmer:hover {
+      background-image: linear-gradient(90deg,#7C3AED 0%,#a78bfa 40%,#7C3AED 100%);
+      background-size: 200% auto;
+      animation: adm-shimmer 1.6s linear infinite;
+    }
+  `}</style>
+);
+
 export default function Dashboard() {
   const { currentUser, userData, isLoadingUser } = useAuth();
   const router = useRouter();
 
-  // 🔒 ROUTE GUARD: Only Admin and Manager can access
   useEffect(() => {
     if (isLoadingUser) return;
     if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
@@ -29,68 +41,74 @@ export default function Dashboard() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--adm-bg)' }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Verifying access...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500 mx-auto" />
+          <p className="mt-3 text-sm" style={{ color: 'var(--adm-text-sm)' }}>Verifying access…</p>
         </div>
       </div>
     );
   }
 
-  if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
-    return null;
-  }
+  if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <ShimmerStyle />
+      <div className="min-h-screen adm-page adm-font-body" style={{ background: 'var(--adm-bg)' }}>
+        <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+        <main className="max-w-7xl mx-auto px-6 py-8">
+
+          {/* ── Hero welcome ── */}
+          <div className="flex items-center justify-between flex-wrap gap-4 mb-3">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
+              <h1 className="adm-font-display font-black leading-tight"
+                style={{ fontSize: '2.2rem', color: 'var(--adm-text)', letterSpacing: '-0.02em' }}>
                 Welcome to StitchFlow
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-base mt-1" style={{ color: 'var(--adm-text-sm)' }}>
                 Manage your tailoring operations efficiently
               </p>
             </div>
 
-            {/* Team Management Button */}
             <Link href="/admin/team">
-              <Button
-                className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 transition-all duration-200 px-6 py-5 text-base font-semibold"
+              <button
+                className="adm-btn-shimmer inline-flex items-center gap-2 px-5 py-2.5 font-bold text-sm text-white"
+                style={{
+                  borderRadius: 999, background: 'var(--adm-violet-c)',
+                  border: 'none', cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(124,58,237,0.30)',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(124,58,237,0.40)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(124,58,237,0.30)'; }}
               >
-                <Users className="w-5 h-5 mr-2" />
+                <Users className="w-4 h-4" />
                 Manage Team
-              </Button>
+              </button>
             </Link>
           </div>
-        </div>
 
-        {/* Stats Cards */}
-        <StatsCards />
+          {/* Warm divider */}
+          <div className="mb-7 mt-5" style={{ height: 1, background: 'var(--adm-border)' }} />
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-          {/* Left Column - Pending Orders and Tasks */}
-          <div className="lg:col-span-2 space-y-6">
-            <PendingOrdersTable />
-            <TasksList />
+          {/* ── Stat cards ── */}
+          <StatsCards />
+
+          {/* ── Main grid ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-7">
+            <div className="lg:col-span-2 space-y-6">
+              <PendingOrdersTable />
+              <TasksList />
+            </div>
+            <div className="space-y-6">
+              <PaymentOverview />
+              <UpcomingDeliveries />
+            </div>
           </div>
-
-          {/* Right Column - Summaries */}
-          <div className="space-y-6">
-            <PaymentOverview />
-            <UpcomingDeliveries />
-          </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }
-
-

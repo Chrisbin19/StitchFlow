@@ -2,125 +2,95 @@
 
 import { useState, useEffect } from 'react';
 import { db } from "@/firebase";
-import { collection, query, onSnapshot, where } from "firebase/firestore";
-import { Card, CardContent } from '@/components/ui/card';
+import { collection, query, onSnapshot } from "firebase/firestore";
+import { motion } from 'framer-motion';
 import { TrendingUp, AlertCircle, CheckCircle2, IndianRupee } from 'lucide-react';
 
+const CARDS = [
+  { key: 'totalThisMonth', title: 'Total Orders', subtitle: 'Placed this month', icon: TrendingUp, accent: 'var(--adm-blue-c)', accentBg: 'var(--adm-blue-bg)', accentBr: 'var(--adm-blue-br)' },
+  { key: 'pendingCount', title: 'Pending Approval', subtitle: 'Needs admin action', icon: AlertCircle, accent: 'var(--adm-orange-c)', accentBg: 'var(--adm-orange-bg)', accentBr: 'var(--adm-orange-br)' },
+  { key: 'readyCount', title: 'Ready for Pickup', subtitle: 'Production done', icon: CheckCircle2, accent: 'var(--adm-emerald)', accentBg: 'rgba(5,150,105,0.10)', accentBr: 'rgba(5,150,105,0.20)' },
+  { key: 'paymentDue', title: 'Pending Payment', subtitle: '', icon: IndianRupee, accent: 'var(--adm-blue-c)', accentBg: 'var(--adm-blue-bg)', accentBr: 'var(--adm-blue-br)' },
+];
+
+const cardV = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.07 + 0.15, duration: 0.5, ease: [0.22, 1, 0.36, 1] } }),
+};
+
+const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+
 export function StatsCards() {
-  const [stats, setStats] = useState({
-    totalThisMonth: 0,
-    pendingCount: 0,
-    readyCount: 0,
-    paymentDueAmount: 0,
-    paymentDueCount: 0
-  });
+  const [stats, setStats] = useState({ totalThisMonth: 0, pendingCount: 0, readyCount: 0, paymentDueAmount: 0, paymentDueCount: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const q = query(collection(db, "orders"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    return onSnapshot(q, (snap) => {
       const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-
-      const newStats = snapshot.docs.reduce((acc, doc) => {
-        const data = doc.data();
-        const created = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
-
-        if (created.getMonth() === currentMonth && created.getFullYear() === currentYear) {
-          acc.totalThisMonth += 1;
-        }
-        if (['Pending', 'Pending_Approval'].includes(data.status)) {
-          acc.pendingCount += 1;
-        }
-        if (data.status === 'Ready_To_Deliver') {
-          acc.readyCount += 1;
-        }
-        if (data.status === 'PAYMENT_PENDING') {
-          acc.paymentDueCount += 1;
-          acc.paymentDueAmount += Number(data.financial?.totalPrice || 0);
-        }
+      const cm = now.getMonth(), cy = now.getFullYear();
+      const s = snap.docs.reduce((acc, doc) => {
+        const d = doc.data();
+        const created = d.createdAt?.toDate ? d.createdAt.toDate() : new Date();
+        if (created.getMonth() === cm && created.getFullYear() === cy) acc.totalThisMonth++;
+        if (['Pending', 'Pending_Approval'].includes(d.status)) acc.pendingCount++;
+        if (d.status === 'Ready_To_Deliver') acc.readyCount++;
+        if (d.status === 'PAYMENT_PENDING') { acc.paymentDueCount++; acc.paymentDueAmount += Number(d.financial?.totalPrice || 0); }
         return acc;
       }, { totalThisMonth: 0, pendingCount: 0, readyCount: 0, paymentDueAmount: 0, paymentDueCount: 0 });
-
-      setStats(newStats);
+      setStats(s);
       setLoading(false);
     });
-
-    return () => unsubscribe();
   }, []);
 
-  const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', maximumFractionDigits: 0,
-  }).format(amount);
-
-  const dynamicStatsData = [
-    {
-      title: 'Total Orders',
-      value: loading ? '...' : stats.totalThisMonth,
-      subtitle: 'Placed this month',
-      icon: TrendingUp,
-      color: 'text-indigo-500',
-      bgColor: 'bg-indigo-500/10',
-      accent: 'border-l-indigo-500',
-    },
-    {
-      title: 'Pending Approval',
-      value: loading ? '...' : stats.pendingCount,
-      subtitle: 'Needs Admin Action',
-      icon: AlertCircle,
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-500/10',
-      accent: 'border-l-orange-500',
-    },
-    {
-      title: 'Ready for Pickup',
-      value: loading ? '...' : stats.readyCount,
-      subtitle: 'Production done',
-      icon: CheckCircle2,
-      color: 'text-emerald-500',
-      bgColor: 'bg-emerald-500/10',
-      accent: 'border-l-emerald-500',
-    },
-    {
-      title: 'Pending Payment',
-      value: loading ? '...' : formatCurrency(stats.paymentDueAmount),
-      subtitle: `${stats.paymentDueCount} invoices unpaid`,
-      icon: IndianRupee,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
-      accent: 'border-l-blue-500',
-    },
-  ];
+  const values = {
+    totalThisMonth: loading ? '—' : stats.totalThisMonth,
+    pendingCount: loading ? '—' : stats.pendingCount,
+    readyCount: loading ? '—' : stats.readyCount,
+    paymentDue: loading ? '—' : fmt(stats.paymentDueAmount),
+  };
+  const subtitles = {
+    totalThisMonth: 'Placed this month',
+    pendingCount: 'Needs admin action',
+    readyCount: 'Production done',
+    paymentDue: `${stats.paymentDueCount} invoice${stats.paymentDueCount !== 1 ? 's' : ''} unpaid`,
+  };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {dynamicStatsData.map((stat, index) => {
-        const Icon = stat.icon;
+      {CARDS.map((card, i) => {
+        const Icon = card.icon;
         return (
-          <Card
-            key={index}
-            className={`border border-border bg-card hover:shadow-md transition-all duration-200 border-l-4 ${stat.accent}`}
+          <motion.div key={card.key} custom={i} variants={cardV} initial="hidden" animate="visible"
+            className="relative overflow-hidden"
+            style={{
+              borderRadius: 14, border: '1px solid var(--adm-border)',
+              background: 'var(--adm-card)', boxShadow: 'var(--adm-shadow)', cursor: 'default'
+            }}
+            whileHover={{ scale: 1.02, boxShadow: 'var(--adm-shadow-d)', transition: { duration: 0.2 } }}
           >
-            <CardContent className="pt-6">
+            {/* Left accent bar */}
+            <div className="absolute left-0 top-0 bottom-0 w-1"
+              style={{ background: card.accent, borderRadius: '14px 0 0 14px' }} />
+
+            <div className="pl-6 pr-5 pt-5 pb-5">
               <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
-                    {stat.title}
-                  </p>
-                  <p className="text-2xl font-bold text-foreground mt-2">
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1 font-medium">
-                    {stat.subtitle}
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: card.accent }}>{card.title}</p>
+                  <p className="text-3xl font-black tracking-tight mt-1.5 leading-none adm-font-display"
+                    style={{ color: 'var(--adm-text)' }}>{values[card.key]}</p>
+                  <p className="text-xs mt-1.5" style={{ color: 'var(--adm-text-xs)' }}>
+                    {subtitles[card.key]}
                   </p>
                 </div>
-                <div className={`${stat.bgColor} p-3 rounded-xl`}>
-                  <Icon className={`w-5 h-5 ${stat.color}`} />
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: card.accentBg, border: `1px solid ${card.accentBr}` }}>
+                  <Icon className="w-5 h-5" style={{ color: card.accent }} />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </motion.div>
         );
       })}
     </div>

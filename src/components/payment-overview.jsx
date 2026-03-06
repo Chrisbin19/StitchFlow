@@ -4,9 +4,21 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from "@/firebase";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, ArrowRight, IndianRupee } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2, IndianRupee } from 'lucide-react';
+
+const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+
+const statusChip = (s) => {
+  if (s === 'Paid') return { bg: 'rgba(5,150,105,0.10)', text: 'var(--adm-emerald)', br: 'rgba(5,150,105,0.20)' };
+  if (s === 'Partial') return { bg: 'var(--adm-amber-bg)', text: 'var(--adm-amber-c)', br: 'var(--adm-amber-br)' };
+  return { bg: 'rgba(220,38,38,0.10)', text: 'var(--adm-red)', br: 'rgba(220,38,38,0.20)' };
+};
+
+const rowV = {
+  hidden: { opacity: 0, x: 12 },
+  visible: (i) => ({ opacity: 1, x: 0, transition: { delay: i * 0.06 + 0.2, duration: 0.4, ease: [0.22, 1, 0.36, 1] } }),
+};
 
 export function PaymentOverview() {
   const [payments, setPayments] = useState([]);
@@ -15,89 +27,110 @@ export function PaymentOverview() {
 
   useEffect(() => {
     const q = query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(5));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const liveData = snapshot.docs.map(doc => {
-        const data = doc.data();
-        const total = Number(data.financial?.totalPrice || 0);
-        const paid = Number(data.financial?.advanceAmount || 0);
-        let status = 'Pending';
+    return onSnapshot(q, (snap) => {
+      setPayments(snap.docs.map(doc => {
+        const d = doc.data();
+        const total = Number(d.financial?.totalPrice || 0);
+        const paid = Number(d.financial?.advanceAmount || 0);
+        let status = 'Unpaid';
         if (paid >= total && total > 0) status = 'Paid';
         else if (paid > 0) status = 'Partial';
-        return { id: doc.id, customer: data.customer?.name || 'Unknown', total, paid, status, remaining: total - paid };
-      });
-      setPayments(liveData);
+        return { id: doc.id, customer: d.customer?.name || 'Unknown', total, paid, status, remaining: total - paid };
+      }));
       setLoading(false);
     });
-    return () => unsubscribe();
   }, []);
 
-  const formatMoney = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
-
   return (
-    <Card className="h-fit border border-border bg-card shadow-sm">
-      <CardHeader className="border-b border-border py-4 px-6 bg-muted/30">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-indigo-500/10 rounded-md text-indigo-500">
-              <IndianRupee className="w-4 h-4" />
-            </div>
-            <CardTitle className="text-sm font-bold text-foreground">Latest Transactions</CardTitle>
+    <div style={{
+      borderRadius: 14, border: '1px solid var(--adm-border)',
+      background: 'var(--adm-card)', boxShadow: 'var(--adm-shadow)', overflow: 'hidden'
+    }}>
+
+      {/* Header */}
+      <div className="px-5 py-4 flex items-center justify-between"
+        style={{ borderBottom: '1px solid var(--adm-border)' }}>
+        <div className="flex items-center gap-2.5">
+          {/* ₹ icon pill */}
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{ background: 'rgba(5,150,105,0.12)', border: '1px solid rgba(5,150,105,0.2)' }}>
+            <IndianRupee className="w-3.5 h-3.5" style={{ color: 'var(--adm-emerald)' }} />
           </div>
-          <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-full">Live Feed</span>
+          <h2 className="adm-font-display text-sm font-black uppercase tracking-wide"
+            style={{ color: 'var(--adm-text)' }}>Latest Transactions</h2>
         </div>
-      </CardHeader>
+        {/* Live Feed badge */}
+        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
+          style={{ border: '1px solid rgba(5,150,105,0.35)', color: 'var(--adm-emerald)', background: 'transparent' }}>
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+          </span>
+          Live Feed
+        </span>
+      </div>
 
-      <CardContent className="p-0">
-        <div className="divide-y divide-border">
-          {loading ? (
-            <div className="py-12 text-center text-muted-foreground text-xs flex flex-col items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" /> Fetching ledger...
-            </div>
-          ) : payments.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => router.push(`/admin/orders/${item.id}`)}
-              className="p-4 hover:bg-muted/40 transition-all cursor-pointer group flex items-center justify-between"
-            >
-              {/* Left: Customer Info */}
-              <div className="flex flex-col gap-0.5">
-                <p className="text-sm font-bold text-foreground group-hover:text-indigo-500 transition-colors">
-                  {item.customer}
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground font-mono">#{item.id.slice(0, 6)}</span>
-                  {item.status === 'Paid' ? (
-                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">PAID</span>
-                  ) : (
-                    <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">{item.status.toUpperCase()}</span>
-                  )}
-                </div>
-              </div>
+      {/* Rows */}
+      <div>
+        {loading ? (
+          <div className="flex items-center justify-center py-12" style={{ color: 'var(--adm-text-xs)' }}>
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            <span className="text-xs">Fetching ledger…</span>
+          </div>
+        ) : (
+          <AnimatePresence>
+            {payments.map((item, i) => {
+              const chip = statusChip(item.status);
+              return (
+                <motion.div key={item.id} custom={i} variants={rowV} initial="hidden" animate="visible"
+                  className="px-5 py-3.5 flex items-center justify-between cursor-pointer transition-colors"
+                  style={{ borderBottom: '1px solid var(--adm-divider)' }}
+                  onClick={() => router.push(`/admin/orders/${item.id}`)}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--adm-card-alt)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  {/* Left */}
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-bold leading-none" style={{ color: 'var(--adm-text)' }}>
+                      {item.customer}
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <span style={{ fontFamily: 'monospace', fontSize: 10, color: 'var(--adm-text-xs)' }}>
+                        #{item.id.slice(0, 6)}
+                      </span>
+                      <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
+                        style={{ color: chip.text, background: chip.bg, border: `1px solid ${chip.br}` }}>
+                        {item.status}
+                      </span>
+                    </div>
+                  </div>
 
-              {/* Right: The Numbers */}
-              <div className="text-right">
-                {item.remaining > 0 ? (
-                  <>
-                    <p className="text-sm font-bold text-red-500">-{formatMoney(item.remaining)}</p>
-                    <p className="text-[10px] text-muted-foreground">Paid: {formatMoney(item.paid)}</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm font-bold text-emerald-500">{formatMoney(item.total)}</p>
-                    <p className="text-[10px] text-muted-foreground">Fully Settled</p>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="p-3 bg-muted/20 border-t border-border">
-          <Button variant="ghost" className="w-full text-xs font-semibold text-muted-foreground hover:text-indigo-500 h-8">
-            View All Payments <ArrowRight className="w-3 h-3 ml-1" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+                  {/* Right */}
+                  <div className="text-right">
+                    {item.remaining > 0 ? (
+                      <>
+                        <p className="adm-font-display text-sm font-black leading-none" style={{ color: 'var(--adm-red)' }}>
+                          -{fmt(item.remaining)}
+                        </p>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--adm-text-xs)' }}>
+                          Paid: {fmt(item.paid)}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="adm-font-display text-sm font-black leading-none" style={{ color: 'var(--adm-emerald)' }}>
+                          {fmt(item.total)}
+                        </p>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--adm-text-xs)' }}>Fully Settled</p>
+                      </>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        )}
+      </div>
+    </div>
   );
 }
