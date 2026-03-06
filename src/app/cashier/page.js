@@ -41,7 +41,7 @@ export default function CashierDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen cf-page font-body" style={{ background: 'var(--cf-bg)' }}>
       <Header />
 
       <main className="p-6">

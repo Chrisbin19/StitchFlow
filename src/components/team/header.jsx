@@ -1,17 +1,17 @@
 import { Button } from '@/components/ui/button';
-import { Bell, Settings, LogOut } from 'lucide-react';
+import { Bell, Settings, LogOut, Scissors } from 'lucide-react';
 
 export function AdminHeader() {
   return (
     <header className="border-b border-border bg-card">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">SF</span>
+          <div className="w-9 h-9 bg-indigo-500 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/30 flex-shrink-0">
+            <Scissors className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground">StitchFlow</h2>
-            <p className="text-xs text-muted-foreground">Admin - Team Management</p>
+            <h2 className="text-base font-black text-foreground leading-none">StitchFlow</h2>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Admin — Team Management</p>
           </div>
         </div>
 

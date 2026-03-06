@@ -5,7 +5,7 @@ import { db } from "@/firebase";
 import { collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
 import { IndianRupee, Clock, CheckCircle2, PackageCheck, Truck } from 'lucide-react';
 import { NotificationIcon } from '@/components/ui/animated-state-icons';
-import { Button } from "@/components/ui/button";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Popover,
@@ -81,25 +81,26 @@ export default function CashierNotificationBell({ onCollect, onDeliver }) {
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="relative"
+                <button
+                    className="relative w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--cf-text-sm)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--cf-divider)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                     <NotificationIcon
-                        size={22}
+                        size={16}
                         hasNotification={totalCount > 0}
                     />
 
                     {totalCount > 0 && (
-                        <span className="absolute -top-1 -right-1 flex h-5 w-5">
+                        <span className="absolute -top-1 -right-1 flex h-4 w-4">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-5 w-5 bg-red-500 text-white text-[10px] font-bold items-center justify-center">
+                            <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[9px] font-bold items-center justify-center">
                                 {totalCount}
                             </span>
                         </span>
                     )}
-                </Button>
+                </button>
             </PopoverTrigger>
 
             <PopoverContent align="end" className="w-[400px] p-0 shadow-2xl rounded-xl overflow-hidden">

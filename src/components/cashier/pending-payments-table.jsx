@@ -3,10 +3,14 @@
 import { useState, useEffect } from 'react';
 import { db } from "@/firebase";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CreditCard } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CreditCard, Loader2, Phone, AlertCircle } from 'lucide-react';
 import PaymentCollectionDialog from './PaymentCollectionDialog';
+
+const rowV = {
+  hidden: { opacity: 0, x: -12 },
+  visible: (i) => ({ opacity: 1, x: 0, transition: { delay: i * 0.05, duration: 0.38, ease: [0.22, 1, 0.36, 1] } }),
+};
 
 export default function PendingPaymentsTable() {
   const [orders, setOrders] = useState([]);
@@ -19,93 +23,115 @@ export default function PendingPaymentsTable() {
       where("status", "==", "PAYMENT_PENDING"),
       orderBy("createdAt", "desc")
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setOrders(data);
+    return onSnapshot(q, (snap) => {
+      setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       setLoading(false);
     });
-
-    return () => unsubscribe();
   }, []);
+
+  const badge = { background: 'var(--cf-badge)', border: '1px solid var(--cf-border)', borderRadius: 6, padding: '2px 7px', fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: 'var(--cf-text)', letterSpacing: '0.07em' };
+  const chip = { background: 'var(--cf-badge)', border: '1px solid var(--cf-border)', borderRadius: 999, padding: '2px 10px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--cf-text-sm)' };
 
   return (
     <>
-      <Card className="p-6">
-        <h2 className="text-xl font-bold text-foreground mb-4">Pending Payments</h2>
+      <div style={{ borderRadius: 16, border: '1px solid var(--cf-border)', background: 'var(--cf-card)', boxShadow: 'var(--cf-shadow)', overflow: 'hidden' }}>
+        {/* Header */}
+        <div className="px-6 py-4 flex items-center justify-between"
+          style={{ borderBottom: '1px solid var(--cf-border)' }}>
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4" style={{ color: 'var(--cf-amber-c)' }} />
+            <h2 className="text-sm font-black uppercase tracking-wide" style={{ color: 'var(--cf-text)' }}>
+              Pending Payments
+            </h2>
+            {orders.length > 0 && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background: 'var(--cf-amber-bg)', color: 'var(--cf-amber-c)', border: '1px solid var(--cf-amber-br)' }}>
+                {orders.length}
+              </span>
+            )}
+          </div>
+          <span className="text-[11px]" style={{ color: 'var(--cf-text-xs)' }}>Advance collection needed</span>
+        </div>
 
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground animate-pulse">Loading orders...</div>
+          <div className="flex items-center justify-center py-12" style={{ color: 'var(--cf-text-xs)' }}>
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            <span className="text-sm">Loading orders…</span>
+          </div>
         ) : orders.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No pending payments</div>
+          <div className="text-center py-12 text-sm" style={{ color: 'var(--cf-text-xs)' }}>
+            No pending payments 🎉
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Order ID</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Customer</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Garment</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Total</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Advance</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Balance</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Status</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Action</th>
+                <tr style={{ background: 'var(--cf-thead)', borderBottom: '1px solid var(--cf-border)' }}>
+                  {['Order ID', 'Customer', 'Garment', 'Total', 'Advance Due', 'Balance', 'Status', ''].map(h => (
+                    <th key={h} className="text-left py-3 px-4 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap"
+                      style={{ color: 'var(--cf-text-xs)' }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="border-b border-border hover:bg-secondary/30 transition-colors"
-                  >
-                    <td className="py-3 px-4 font-medium text-primary font-mono text-sm">
-                      #{order.id.slice(0, 6).toUpperCase()}
-                    </td>
-                    <td className="py-3 px-4 text-foreground">
-                      <div>
-                        <p className="font-medium">{order.customer?.name}</p>
-                        <p className="text-xs text-muted-foreground">{order.customer?.phone}</p>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-foreground">{order.product?.dressType}</td>
-                    <td className="py-3 px-4 font-semibold text-foreground">
-                      ₹{order.financial?.totalPrice?.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 text-orange-600 font-medium">
-                      ₹{order.financial?.advanceAmount?.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground font-medium">
-                      ₹{order.financial?.balanceAmount?.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.financial?.isPaid
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-orange-100 text-orange-800'
-                        }`}>
-                        {order.financial?.isPaid ? 'Paid' : 'Pending'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Button
-                        size="sm"
-                        onClick={() => setSelectedOrder(order)}
-                        disabled={order.financial?.isPaid}
-                        className="font-bold"
-                      >
-                        <CreditCard className="w-4 h-4 mr-1" /> Collect
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                <AnimatePresence>
+                  {orders.map((order, i) => (
+                    <motion.tr key={order.id} custom={i} variants={rowV}
+                      initial="hidden" animate="visible"
+                      style={{
+                        borderBottom: '1px solid var(--cf-divider)',
+                        background: i % 2 === 0 ? 'var(--cf-card)' : 'var(--cf-card-alt)',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--cf-amber-bg)'}
+                      onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? 'var(--cf-card)' : 'var(--cf-card-alt)'}
+                    >
+                      <td className="py-3.5 px-4"><span style={badge}>#{order.id.slice(0, 6).toUpperCase()}</span></td>
+                      <td className="py-3.5 px-4">
+                        <p className="font-semibold text-sm leading-none mb-0.5" style={{ color: 'var(--cf-text)' }}>
+                          {order.customer?.name}
+                        </p>
+                        <p className="text-[11px] flex items-center gap-1" style={{ color: 'var(--cf-text-xs)' }}>
+                          <Phone className="w-2.5 h-2.5" />{order.customer?.phone}
+                        </p>
+                      </td>
+                      <td className="py-3.5 px-4"><span style={chip}>{order.product?.dressType}</span></td>
+                      <td className="py-3.5 px-4 font-semibold whitespace-nowrap" style={{ color: 'var(--cf-text)' }}>
+                        ₹{order.financial?.totalPrice?.toLocaleString()}
+                      </td>
+                      <td className="py-3.5 px-4 font-bold whitespace-nowrap" style={{ color: 'var(--cf-amber-c)' }}>
+                        ₹{order.financial?.advanceAmount?.toLocaleString()}
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap" style={{ color: 'var(--cf-text-sm)' }}>
+                        ₹{order.financial?.balanceAmount?.toLocaleString()}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full"
+                          style={order.financial?.isPaid
+                            ? { background: 'rgba(16,185,129,0.12)', color: 'var(--cf-emerald)', border: '1px solid rgba(16,185,129,0.25)' }
+                            : { background: 'var(--cf-amber-bg)', color: 'var(--cf-amber-c)', border: '1px solid var(--cf-amber-br)' }
+                          }>
+                          {order.financial?.isPaid ? 'Paid' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          disabled={order.financial?.isPaid}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white whitespace-nowrap disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          style={{ background: 'var(--cf-text)' }}
+                        >
+                          <CreditCard className="w-3 h-3" />
+                          Collect
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
         )}
-      </Card>
+      </div>
 
       <PaymentCollectionDialog
         order={selectedOrder}
