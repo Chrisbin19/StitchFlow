@@ -77,14 +77,14 @@ export default function CutterDashboard() {
     }
 
     if (!userData) {
-        return null; // Router will redirect
+        return null;
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen adm-page transition-colors duration-300">
             <Header userId={userId} userName={userData.name} />
 
-            <main className="p-6">
+            <main className="max-w-7xl mx-auto px-6 py-8">
                 <div className="grid gap-6">
                     {/* Top Stats */}
                     <CutterStats userId={userId} />

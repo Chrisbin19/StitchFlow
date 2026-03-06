@@ -1,8 +1,7 @@
-'use client';
+"use client";
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { AdminHeader } from '@/components/team/header';
 import { TeamStats } from '@/components/team/team-stats';
@@ -15,7 +14,7 @@ export default function AdminTeamPage() {
   const { currentUser, userData, isLoadingUser } = useAuth();
   const router = useRouter();
 
-  // 🔒 ROUTE GUARD: Only Admin and Manager can access
+  // ROUTE GUARD: Only Admin and Manager can access
   useEffect(() => {
     if (isLoadingUser) return;
     if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
@@ -23,131 +22,56 @@ export default function AdminTeamPage() {
     }
   }, [currentUser, userData, isLoadingUser, router]);
 
-  const [workers, setWorkers] = useState([
-    {
-      id: 1,
-      name: 'Ravi Kumar',
-      email: 'ravi.kumar@stitchflow.com',
-      role: 'Cutter',
-      status: 'Active',
-      activeOrders: 5,
-      joinedDate: '2025-06-15',
-    },
-    {
-      id: 2,
-      name: 'Priya Sharma',
-      email: 'priya.sharma@stitchflow.com',
-      role: 'Tailor',
-      status: 'Active',
-      activeOrders: 8,
-      joinedDate: '2025-07-20',
-    },
-    {
-      id: 3,
-      name: 'Amit Patel',
-      email: 'amit.patel@stitchflow.com',
-      role: 'Tailor',
-      status: 'Active',
-      activeOrders: 6,
-      joinedDate: '2025-08-10',
-    },
-    {
-      id: 4,
-      name: 'Neha Singh',
-      email: 'neha.singh@stitchflow.com',
-      role: 'Cashier',
-      status: 'Active',
-      activeOrders: 0,
-      joinedDate: '2025-09-05',
-    },
-    {
-      id: 5,
-      name: 'Vikram Reddy',
-      email: 'vikram.reddy@stitchflow.com',
-      role: 'Cutter',
-      status: 'Active',
-      activeOrders: 7,
-      joinedDate: '2025-09-12',
-    },
-  ]);
-
-  const handleAddStaff = (newStaff) => {
-    setWorkers((prev) => [newStaff, ...prev]);
-  };
-
-  const handleDeleteWorker = (id) => {
-    setWorkers((prev) => prev.filter((w) => w.id !== id));
-  };
-
-  // 🔒 Show loading while verifying auth
+  // Handle loading state
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Verifying access...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--adm-bg)', color: 'var(--adm-text-sm)' }}>
+        <p className="adm-font-display font-black tracking-widest uppercase">Verifying access...</p>
       </div>
     );
   }
 
   if (!currentUser || !ALLOWED_ROLES.includes(userData?.role)) {
-    return null;
+    return null; // Should redirect via useEffect
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen adm-page transition-colors duration-300">
       <AdminHeader />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Team Management</h1>
-          <p className="text-muted-foreground">
+      <main className="max-w-[1400px] mx-auto px-6 py-8">
+
+        {/* HERO SECTION */}
+        <div className="mb-6">
+          <h1 className="adm-font-display font-black tracking-tight mb-2" style={{ fontSize: '2.8rem', color: 'var(--adm-text)', lineHeight: 1.1 }}>
+            Team Management
+          </h1>
+          <p className="text-[14px]" style={{ color: 'var(--adm-text-md)' }}>
             Manage your StitchFlow team, track workload, and onboard new staff members
           </p>
         </div>
 
-        {/* Team Statistics */}
-        <div className="mb-8">
-          <TeamStats workers={workers} />
-        </div>
+        {/* Thin warm divider line */}
+        <div style={{ height: 1, width: '100%', background: 'linear-gradient(to right, var(--adm-border) 0%, transparent 100%)', marginBottom: 28 }} />
 
-        {/* Main Grid - Form and Roster */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Add Staff Form - Left Column */}
-          <div className="lg:col-span-1">
-            <AddStaffForm onAddStaff={handleAddStaff} />
+        {/* STAT CARDS */}
+        <TeamStats />
+
+        {/* LAYOUT - Two Column */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+
+          {/* Add Staff Form - Left Column (roughly 35% ~ 4 cols) */}
+          <div className="lg:col-span-5 xl:col-span-4">
+            <AddStaffForm />
           </div>
 
-          {/* Team Roster - Right Column */}
-          <div className="lg:col-span-2">
-            <TeamRoster workers={workers} onDeleteWorker={handleDeleteWorker} />
+          {/* Team Roster - Right Column (roughly 65% ~ 8 cols) */}
+          <div className="lg:col-span-7 xl:col-span-8">
+            <TeamRoster />
           </div>
+
         </div>
 
-        {/* Additional Info Section */}
-        <div className="bg-card border border-border rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-primary mb-4">Team Management Tips</h2>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-start gap-3">
-              <span className="text-primary font-bold mt-0.5">•</span>
-              <span>Monitor active orders for each team member to balance workload distribution</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-primary font-bold mt-0.5">•</span>
-              <span>Ensure proper role assignment (Cutter, Tailor, Cashier) for efficient workflow</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-primary font-bold mt-0.5">•</span>
-              <span>Use strong passwords and secure credentials when adding new staff members</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-primary font-bold mt-0.5">•</span>
-              <span>Regularly review team performance and update staff information as needed</span>
-            </li>
-          </ul>
-        </div>
       </main>
     </div>
   );
