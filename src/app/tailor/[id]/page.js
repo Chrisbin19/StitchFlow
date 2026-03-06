@@ -10,7 +10,7 @@ import AssignedGarmentsTable from '@/components/tailor/assigned-garments-table';
 import MeasurementDetails from '@/components/tailor/measurement-details';
 import WorkProgress from '@/components/tailor/work-progress';
 import CompletedGarments from '@/components/tailor/completed-garments';
-import ReadyForDelivery from '@/components/tailor/ready-for-delivery'; 
+import ReadyForDelivery from '@/components/tailor/ready-for-delivery';
 
 
 export default function TailorDashboard() {
@@ -77,10 +77,10 @@ export default function TailorDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen adm-page transition-colors duration-300">
             <Header userId={userId} userName={userData.name} />
 
-            <main className="p-6">
+            <main className="max-w-7xl mx-auto px-6 py-8">
                 <div className="grid gap-6">
                     {/* Top Stats */}
                     <TailorStats userId={userId} />
@@ -88,8 +88,10 @@ export default function TailorDashboard() {
                     {/* Main Content Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Left Column - Assigned Garments */}
-                        <div className="lg:col-span-2">
+                        <div className="lg:col-span-2 flex flex-col gap-6">
                             <AssignedGarmentsTable userId={userId} />
+                            <CompletedGarments userId={userId} />
+                            <ReadyForDelivery />
                         </div>
 
                         {/* Right Column - Measurements and Progress */}
@@ -98,13 +100,6 @@ export default function TailorDashboard() {
                             <WorkProgress userId={userId} />
                         </div>
                     </div>
-
-                    {/* Completed Garments */}
-                    <CompletedGarments userId={userId} />
-
-                    {/* 2. Add the Ready for Delivery component here at the end */}
-
-                    <ReadyForDelivery />
                 </div>
             </main>
         </div>

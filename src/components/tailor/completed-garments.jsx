@@ -1,29 +1,10 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { db } from "@/firebase";
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  orderBy,
-  doc,
-  updateDoc,
-  arrayUnion,
-  serverTimestamp,
-} from "firebase/firestore";
-import { Card } from "@/components/ui/card";
-import {
-  CheckCircle,
-  Loader2,
-  Package,
-  RefreshCcw,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { collection, query, where, onSnapshot, doc, updateDoc, arrayUnion, serverTimestamp } from "firebase/firestore";
+import { motion, AnimatePresence } from "framer-motion";
+import { Package, RefreshCcw, CheckCircle2, Loader2, PlayCircle } from "lucide-react";
 
 export default function CompletedGarments({ userId }) {
   const [completedList, setCompletedList] = useState([]);
@@ -32,60 +13,35 @@ export default function CompletedGarments({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
-
-    // Fetch garments that were marked as Stitching Completed
     const q = query(
       collection(db, "orders"),
-      //where("assignedTo", "==", userId),
-      where("status", "==", "STITCHING_COMPLETED"),
-      orderBy("updatedAt", "desc"),
+      where("status", "==", "STITCHING_COMPLETED")
     );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const startOfToday = new Date();
-        startOfToday.setHours(0, 0, 0, 0);
-
-        const data = snapshot.docs
-          .map((doc) => {
-            const item = doc.data();
-            const updateTime = item.updatedAt?.toDate() || new Date();
-
-            return {
-              id: doc.id,
-              orderId: item.orderId || doc.id.slice(-6).toUpperCase(),
-              customer: item.customer?.name || "Unknown",
-              garment: item.product?.dressType || "Garment",
-              style: item.product?.style || "Standard",
-              completedTime: updateTime.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-              rawTime: updateTime,
-            };
-          })
-          .filter((item) => item.rawTime >= startOfToday);
-
-        setCompletedList(data);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Firestore Error:", error);
-        setLoading(false);
-      },
-    );
-
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const data = snapshot.docs.map((doc) => {
+        const item = doc.data();
+        const updateTime = item.updatedAt?.toDate() || new Date();
+        return {
+          id: doc.id,
+          orderId: item.orderId || doc.id.slice(-6).toUpperCase(),
+          customer: item.customer?.name || "Unknown",
+          garment: item.product?.dressType || "Garment",
+          style: item.product?.style || "STANDARD",
+          completedTime: updateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
+          rawTime: updateTime,
+        };
+      }).filter((i) => i.rawTime >= startOfToday).sort((a, b) => b.rawTime - a.rawTime);
+      setCompletedList(data);
+      setLoading(false);
+    });
     return () => unsubscribe();
   }, [userId]);
 
-  // Action 1: Revert to In Progress for fixes
   const handleRequestAlteration = async (orderId) => {
-    const reason = window.prompt(
-      "Enter alteration details (e.g., Neck too deep, shorten sleeves):",
-    );
-    if (reason === null || reason.trim() === "") return;
-
+    const reason = window.prompt("Enter alteration details:");
+    if (!reason?.trim()) return;
     setUpdating(orderId);
     try {
       await updateDoc(doc(db, "orders", orderId), {
@@ -93,153 +49,144 @@ export default function CompletedGarments({ userId }) {
         "workflow.needsAlteration": true,
         "workflow.alterationNote": reason,
         updatedAt: serverTimestamp(),
-        timeline: arrayUnion({
-          stage: "Alteration Requested",
-          timestamp: new Date(),
-          note: `Sent back for fix: ${reason}`,
-        }),
+        timeline: arrayUnion({ stage: "Alteration Requested", timestamp: new Date(), note: `Sent back: ${reason}` }),
       });
-    } catch (error) {
-      console.error("Update failed:", error);
-    } finally {
-      setUpdating(null);
-    }
+    } catch (e) { console.error(e); } finally { setUpdating(null); }
   };
 
-  // Action 2: Finalize for Delivery
   const handleNoAlteration = async (orderId) => {
-    if (
-      !window.confirm("Confirm this garment is perfect and ready for delivery?")
-    )
-      return;
-
+    if (!window.confirm("Confirm ready for delivery?")) return;
     setUpdating(orderId);
     try {
       await updateDoc(doc(db, "orders", orderId), {
         status: "READY_FOR_DELIVERY",
         "workflow.progress": 100,
         updatedAt: serverTimestamp(),
-        timeline: arrayUnion({
-          stage: "Final Quality Check Passed",
-          timestamp: new Date(),
-          note: "Garment approved with no alterations. Ready for pickup.",
-        }),
+        timeline: arrayUnion({ stage: "Final Quality Check Passed", timestamp: new Date(), note: "Approved with no alterations." }),
       });
-    } catch (error) {
-      console.error("Update failed:", error);
-    } finally {
-      setUpdating(null);
-    }
+    } catch (e) { console.error(e); } finally { setUpdating(null); }
   };
 
-  if (loading)
-    return (
-      <Card className="p-12 flex flex-col items-center justify-center border-none shadow-none">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-4" />
-        <p className="text-sm text-slate-500 font-medium">Loading history...</p>
-      </Card>
-    );
+  const rowV = {
+    hidden: { opacity: 0, x: -12 },
+    visible: (i) => ({ opacity: 1, x: 0, transition: { delay: i * 0.05, duration: 0.35, ease: "easeOut" } }),
+  };
 
   return (
-    <Card className="p-6 border-slate-200 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{
+      borderRadius: 14, border: '1px solid var(--adm-border)',
+      background: 'var(--adm-card)', boxShadow: 'var(--adm-shadow)', overflow: 'hidden'
+    }}>
+      {/* Header */}
+      <div className="px-6 py-4 flex flex-wrap items-center justify-between"
+        style={{ borderBottom: '1px solid var(--adm-border)' }}>
         <div>
-          <h2 className="text-xl font-bold text-slate-900 uppercase tracking-tight">
+          <h2 className="adm-font-display text-base font-black uppercase tracking-wide leading-none mb-1"
+            style={{ color: 'var(--adm-text)', letterSpacing: '0.08em' }}>
             Post-Stitching Review
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-[10px] font-medium" style={{ color: 'var(--adm-text-xs)' }}>
             Decide if these garments need adjustments or are ready for customers
           </p>
         </div>
-        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px]">
-          {completedList.length} Pending Review
-        </Badge>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 999,
+          color: 'var(--adm-amber-c)', background: 'transparent',
+          border: '1px solid var(--adm-amber-br)', textTransform: 'uppercase'
+        }}>
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: 'var(--adm-amber-c)' }} />
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: 'var(--adm-amber-c)' }} />
+          </span>
+          {completedList.length} PENDING REVIEW
+        </span>
       </div>
 
+      {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead>
-            <tr className="border-b border-slate-100 text-slate-400 uppercase text-[10px] font-bold tracking-widest">
-              <th className="py-3 px-4">Order ID</th>
-              <th className="py-3 px-4">Customer</th>
-              <th className="py-3 px-4">Garment</th>
-              <th className="py-3 px-4">Finished At</th>
-              <th className="py-3 px-4 text-right">Decision</th>
+        <table className="w-full text-sm">
+          <thead style={{ background: 'var(--adm-thead)' }}>
+            <tr style={{ borderBottom: '1px solid var(--adm-border)' }}>
+              {['Order ID', 'Customer', 'Garment', 'Finished At', 'Decision'].map((h, i) => (
+                <th key={h} className={`px-6 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap ${i === 4 ? 'text-right' : 'text-left'}`}
+                  style={{ color: 'var(--adm-text-xs)' }}>{h}</th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
-            {completedList.length === 0 ? (
+          <tbody>
+            {loading ? (
               <tr>
-                <td
-                  colSpan={5}
-                  className="py-20 text-center text-slate-400 italic"
-                >
-                  <Package className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                <td colSpan={5} className="px-6 py-10 text-center text-xs" style={{ color: 'var(--adm-text-xs)' }}>
+                  <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" /> Loading…
+                </td>
+              </tr>
+            ) : completedList.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-12 text-center text-sm" style={{ color: 'var(--adm-text-xs)' }}>
+                  <Package className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   No garments waiting for review.
                 </td>
               </tr>
             ) : (
-              completedList.map((item) => (
-                <tr
-                  key={item.id}
-                  className="hover:bg-slate-50/50 transition-colors"
-                >
-                  <td className="py-4 px-4 font-mono text-xs font-bold text-indigo-600 uppercase">
-                    #{item.id.slice(-6)}
-                  </td>
-                  <td className="py-4 px-4 font-semibold text-slate-900">
-                    {item.customer}
-                  </td>
-                  <td className="py-4 px-4">
-                    <p className="text-slate-700">{item.garment}</p>
-                    <p className="text-[10px] text-slate-400 uppercase">
-                      {item.style}
-                    </p>
-                  </td>
-                  <td className="py-4 px-4 text-slate-500 font-medium">
-                    {item.completedTime}
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={updating === item.id}
-                        onClick={() => handleRequestAlteration(item.id)}
-                        className="h-8 border-amber-200 text-amber-700 hover:bg-amber-50 text-[10px] font-bold uppercase"
-                      >
-                        <RefreshCcw className="w-3 h-3 mr-1.5" /> Alter
-                      </Button>
-                      <Button
-                        size="sm"
-                        disabled={updating === item.id}
-                        onClick={() => handleNoAlteration(item.id)}
-                        className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold uppercase px-3 shadow-sm"
-                      >
-                        {updating === item.id ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <>
-                            <CheckCircle2 className="w-3 h-3 mr-1.5" /> Perfect
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              <AnimatePresence>
+                {completedList.map((item, i) => (
+                  <motion.tr key={item.id} custom={i} variants={rowV} initial="hidden" animate="visible"
+                    style={{ borderBottom: '1px solid var(--adm-divider)', background: 'var(--adm-card)', cursor: 'default' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--adm-card-hover)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'var(--adm-card)'}
+                  >
+                    <td className="px-6 py-4 transition-colors">
+                      <span style={{
+                        fontFamily: 'monospace', fontSize: 11, fontWeight: 700,
+                        background: 'var(--adm-badge)', border: '1px solid var(--adm-border)',
+                        borderRadius: 6, padding: '2px 7px', color: 'var(--adm-blue-c)', letterSpacing: '0.07em'
+                      }}>
+                        #{item.id.slice(0, 6).toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-bold text-sm leading-tight" style={{ color: 'var(--adm-text)' }}>
+                      {item.customer}
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-bold text-sm leading-tight" style={{ color: 'var(--adm-text)' }}>{item.garment}</p>
+                      <span className="text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 mt-0.5 rounded-sm inline-block"
+                        style={{ background: 'var(--adm-badge)', color: 'var(--adm-text-xs)' }}>
+                        {item.style}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="adm-font-display text-xl font-black" style={{ color: 'var(--adm-emerald)' }}>
+                        {item.completedTime}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => handleRequestAlteration(item.id)} disabled={updating === item.id}
+                          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all"
+                          style={{ background: 'transparent', color: 'var(--adm-orange-c)', border: '1.5px solid var(--adm-orange-c)', cursor: 'pointer' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'var(--adm-orange-c)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'scale(1.02)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--adm-orange-c)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                        >
+                          <RefreshCcw className="w-3.5 h-3.5" /> ALTER
+                        </button>
+                        <button onClick={() => handleNoAlteration(item.id)} disabled={updating === item.id}
+                          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all shadow-sm"
+                          style={{ background: 'var(--adm-emerald)', color: 'white', border: 'none', cursor: 'pointer' }}
+                          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16,185,129,0.3)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                        >
+                          {updating === item.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><CheckCircle2 className="w-3.5 h-3.5" /> PERFECT</>}
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
             )}
           </tbody>
         </table>
       </div>
-    </Card>
-  );
-}
-
-function Badge({ children, className }) {
-  return (
-    <span className={`px-2.5 py-1 rounded-full font-bold border ${className}`}>
-      {children}
-    </span>
+    </div>
   );
 }

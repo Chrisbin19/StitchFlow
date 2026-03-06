@@ -3,149 +3,139 @@
 import { useState, useEffect } from "react";
 import { db } from "@/firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { Card } from "@/components/ui/card";
-import {
-  Loader2,
-  PackageCheck,
-  Calendar,
-  User,
-  ShoppingBag,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
+import { CheckCircle2, User, Loader2, PackageCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ReadyForDelivery() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    // FETCHING DATA: Only items marked as Ready for Delivery
     const q = query(
       collection(db, "orders"),
-      where("status", "==", "READY_FOR_DELIVERY"),
+      where("status", "==", "READY_FOR_DELIVERY")
     );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const deliveryData = snapshot.docs.map((doc) => {
-          const data = doc.data();
-
-          // Formatting the date when it was ready
-          let readyDate = "Today";
-          if (data.updatedAt) {
-            const dateObj = data.updatedAt.toDate();
-            readyDate = dateObj.toLocaleDateString("en-IN", {
-              day: "2-digit",
-              month: "short",
-            });
-          }
-
-          return {
-            id: doc.id,
-            ...data,
-            displayCustomer: data.customer?.name || "Unknown Customer",
-            displayPhone: data.customer?.phone || "N/A",
-            displayGarment: data.product?.dressType || "Garment",
-            displayDate: readyDate,
-          };
-        });
-        setOrders(deliveryData);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Delivery fetch error:", error);
-        setLoading(false);
-      },
-    );
-
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((doc) => {
+        const d = doc.data();
+        let displayDate = "Today";
+        if (d.updatedAt) displayDate = d.updatedAt.toDate().toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+        return {
+          id: doc.id, ...d,
+          displayCustomer: d.customer?.name || "Unknown Customer",
+          displayPhone: d.customer?.phone || "N/A",
+          displayGarment: d.product?.dressType || "Garment",
+          displayDate,
+        };
+      });
+      setOrders(data);
+      setLoading(false);
+    });
     return () => unsubscribe();
   }, []);
 
-  if (loading)
-    return (
-      <div className="p-10 text-center">
-        <Loader2 className="animate-spin mx-auto w-8 h-8 text-indigo-600" />
-      </div>
-    );
+  const rowV = {
+    hidden: { opacity: 0, x: 12 },
+    visible: (i) => ({ opacity: 1, x: 0, transition: { delay: i * 0.05, duration: 0.35, ease: "easeOut" } }),
+  };
 
   return (
-    <Card className="p-0 border border-slate-200 overflow-hidden bg-white shadow-sm">
-      <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-        <div>
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5 text-emerald-600" />
-            Final Pickup List
-          </h2>
-          <p className="text-xs text-slate-500">
-            Orders passed QC and ready for customer
-          </p>
+    <div style={{
+      borderRadius: 14, border: '1px solid var(--adm-border)',
+      background: 'var(--adm-card)', boxShadow: 'var(--adm-shadow)', overflow: 'hidden'
+    }}>
+      {/* Header */}
+      <div className="px-6 py-4 flex items-center justify-between"
+        style={{ borderBottom: '1px solid var(--adm-border)' }}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: 'rgba(5,150,105,0.12)', border: '1px solid rgba(5,150,105,0.2)' }}>
+            <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--adm-emerald)' }} />
+          </div>
+          <div>
+            <h2 className="adm-font-display text-sm font-black uppercase tracking-wide leading-none mb-1"
+              style={{ color: 'var(--adm-text)' }}>Final Pickup List</h2>
+            <p className="text-[10px]" style={{ color: 'var(--adm-text-xs)' }}>
+              Orders passed QC and ready for customer
+            </p>
+          </div>
         </div>
-        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px] font-bold">
-          {orders.length} Ready
-        </Badge>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+          style={{ background: 'rgba(5,150,105,0.10)', color: 'var(--adm-emerald)', border: '1px solid rgba(5,150,105,0.25)' }}>
+          {orders.length} READY
+        </span>
       </div>
 
+      {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-bold tracking-widest border-b">
-            <tr>
-              <th className="py-4 px-6">Order ID</th>
-              <th className="py-4 px-6">Customer Name</th>
-              <th className="py-4 px-6">Phone</th>
-              <th className="py-4 px-6">Garment Type</th>
-              <th className="py-4 px-6 text-right">Ready Since</th>
+        <table className="w-full text-sm">
+          <thead style={{ background: 'var(--adm-thead)' }}>
+            <tr style={{ borderBottom: '1px solid var(--adm-border)' }}>
+              {['Order ID', 'Customer Name', 'Phone', 'Garment Type'].map(h => (
+                <th key={h} className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap"
+                  style={{ color: 'var(--adm-text-xs)' }}>{h}</th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
-            {orders.length === 0 ? (
+          <tbody>
+            {loading ? (
               <tr>
-                <td
-                  colSpan={5}
-                  className="py-16 text-center text-slate-400 italic"
-                >
-                  <PackageCheck className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                  No items currently awaiting delivery.
+                <td colSpan={4} className="px-6 py-10 text-center text-xs" style={{ color: 'var(--adm-text-xs)' }}>
+                  <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" /> Loading…
+                </td>
+              </tr>
+            ) : orders.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-6 py-12 text-center text-sm" style={{ color: 'var(--adm-text-xs)' }}>
+                  <PackageCheck className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  No items currently awaiting pickup.
                 </td>
               </tr>
             ) : (
-              orders.map((order) => (
-                <tr
-                  key={order.id}
-                  className="hover:bg-slate-50/50 transition-colors group"
-                >
-                  <td className="py-4 px-6 font-mono font-bold text-indigo-600 text-xs">
-                    #{order.id.slice(-6).toUpperCase()}
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 bg-slate-100 rounded-full flex items-center justify-center text-slate-500">
-                        <User className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="font-semibold text-slate-900">
-                        {order.displayCustomer}
+              <AnimatePresence>
+                {orders.map((order, i) => (
+                  <motion.tr key={order.id} custom={i} variants={rowV} initial="hidden" animate="visible"
+                    style={{ borderBottom: '1px solid var(--adm-divider)', background: 'var(--adm-card)', cursor: 'default' }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'rgba(16,185,129,0.04)';
+                      e.currentTarget.children[0].style.borderLeft = '3px solid var(--adm-emerald)';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'var(--adm-card)';
+                      e.currentTarget.children[0].style.borderLeft = '3px solid transparent';
+                    }}
+                  >
+                    <td className="px-6 py-4 transition-colors" style={{ borderLeft: '3px solid transparent' }}>
+                      <span style={{
+                        fontFamily: 'monospace', fontSize: 11, fontWeight: 700,
+                        background: 'var(--adm-badge)', border: '1px solid var(--adm-border)',
+                        borderRadius: 6, padding: '2px 7px', color: 'var(--adm-text)', letterSpacing: '0.07em'
+                      }}>
+                        #{order.id.slice(0, 6).toUpperCase()}
                       </span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6 text-slate-600 font-medium">
-                    {order.displayPhone}
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-[10px] font-bold uppercase">
-                      {order.displayGarment}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-right">
-                    <div className="flex items-center justify-end gap-2 text-slate-500">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span className="text-xs">{order.displayDate}</span>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-sm flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                      <User className="w-3.5 h-3.5" style={{ color: 'var(--adm-text-xs)' }} />
+                      {order.displayCustomer}
+                    </td>
+                    <td className="px-6 py-4" style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--adm-text-sm)' }}>
+                      {order.displayPhone}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full"
+                        style={{ background: 'var(--adm-badge)', color: 'var(--adm-text-sm)', border: '1px solid var(--adm-border)' }}>
+                        {order.displayGarment}
+                      </span>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
             )}
           </tbody>
         </table>
       </div>
-    </Card>
+    </div>
   );
 }
