@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import LoginForm from "@/components/auth/LoginForm";
-import HeroSection from "@/components/auth/HeroSection";
 import { useAuth } from "@/context/AuthContext";
+import LandingContent from "@/components/auth/LandingContent";
+import { LoginPanel, MobileLoginModal } from "@/components/auth/LoginPanel";
+import { motion } from "framer-motion";
+import { Scissors, Menu } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,6 +13,7 @@ export default function LoginPage() {
   const [role, setRole] = useState("Tailor");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const { login } = useAuth();
   const router = useRouter();
@@ -36,35 +39,20 @@ export default function LoginPage() {
       }
 
       const userId = localStorage.getItem('stitch_user_id');
-
       if (!userId) {
         setError("User ID not found. Please contact support.");
         setLoading(false);
         return;
       }
 
-      console.log(`Login successful: ${result.role} user`);
-
       switch (result.role) {
-        case "Admin":
-          router.push("/admin");
-          break;
-        case "Tailor":
-          router.push(`/tailor/${userId}`);
-          break;
-        case "Cutter":
-          router.push(`/cutter/${userId}`);
-          break;
-        case "Manager":
-          router.push("/admin");
-          break;
-        case "Cashier":
-          router.push("/cashier");
-          break;
-        default:
-          router.push("/dashboard");
+        case "Admin": router.push("/admin"); break;
+        case "Tailor": router.push(`/tailor/${userId}`); break;
+        case "Cutter": router.push(`/cutter/${userId}`); break;
+        case "Manager": router.push("/admin"); break;
+        case "Cashier": router.push("/cashier"); break;
+        default: router.push("/dashboard");
       }
-
     } catch (err) {
       console.error("Login Error:", err);
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
@@ -76,24 +64,41 @@ export default function LoginPage() {
     }
   };
 
+  const formProps = { email, setEmail, password, setPassword, role, setRole, error, onSubmit: handleLogin, loading };
+
   return (
-    <main className="min-h-screen flex flex-col lg:grid lg:grid-cols-2">
-      {/* Left — Hero Panel (visible on all screens) */}
-      <div className="flex min-h-[45vh] lg:min-h-screen">
-        <HeroSection />
+    <main className="relative min-h-screen bg-slate-950">
+      {/* ── Mobile header bar ── */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 py-3.5 bg-slate-950/80 backdrop-blur-xl border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-indigo-500 rounded-lg flex items-center justify-center">
+            <Scissors className="w-3.5 h-3.5 text-white" />
+          </div>
+          <span className="text-white font-bold text-sm">StitchFlow</span>
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setMobileOpen(true)}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-full transition-colors"
+        >
+          Sign In
+        </motion.button>
+      </header>
+
+      {/* ── Full-width landing content ── */}
+      <div className="pt-14 lg:pt-0">
+        <LandingContent />
       </div>
 
-      {/* Right — Login Form */}
-      <div className="flex items-center justify-center bg-white p-4 py-10 lg:py-0">
-        <LoginForm
-          email={email} setEmail={setEmail}
-          password={password} setPassword={setPassword}
-          role={role} setRole={setRole}
-          error={error}
-          onSubmit={handleLogin}
-          loading={loading}
-        />
-      </div>
+      {/* ── Right: Fixed glassmorphism login panel (35%) ── */}
+      <LoginPanel {...formProps} />
+
+      {/* ── Mobile: Bottom sheet login modal ── */}
+      <MobileLoginModal
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        {...formProps}
+      />
     </main>
   );
 }
