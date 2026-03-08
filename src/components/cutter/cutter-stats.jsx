@@ -24,7 +24,10 @@ export default function CutterStats({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
-    const q = query(collection(db, "orders"), where("assignedTo", "==", userId));
+
+    // FIX 1: Changed "assignedTo" to "cutterId" to match your database structure
+    const q = query(collection(db, "orders"), where("cutterId", "==", userId));
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
       let counts = { assigned: 0, inProgress: 0, completedToday: 0, pending: 0 };
       const startOfToday = new Date();
@@ -34,16 +37,38 @@ export default function CutterStats({ userId }) {
         const data = doc.data();
         const status = data.status;
         counts.assigned++;
-        if (status === "In Progress" || status === "CUTTING_READY" || status === "In_Cutting") counts.inProgress++;
-        if (status === "Completed" || status === "STITCHING_COMPLETED" || status === "CUTTING_COMPLETE" || status === "CUTTING_COMPLETED") {
-          const t = data.updatedAt?.seconds * 1000 || 0;
-          if (t >= startOfToday.getTime()) counts.completedToday++;
+
+        if (status === "In Progress" || status === "CUTTING_READY" || status === "In_Cutting") {
+          counts.inProgress++;
         }
-        if (status === "ADVANCE_PAID" || status === "Pending") counts.pending++;
+
+        if (status === "Completed" || status === "STITCHING_COMPLETED" || status === "CUTTING_COMPLETE" || status === "CUTTING_COMPLETED") {
+          // FIX 2: Robust timestamp parsing for Firebase
+          let t = 0;
+          if (data.updatedAt) {
+            if (typeof data.updatedAt.toDate === 'function') {
+              t = data.updatedAt.toDate().getTime();
+            } else if (data.updatedAt.seconds) {
+              t = data.updatedAt.seconds * 1000;
+            } else {
+              t = new Date(data.updatedAt).getTime();
+            }
+          }
+
+          if (t >= startOfToday.getTime()) {
+            counts.completedToday++;
+          }
+        }
+
+        if (status === "ADVANCE_PAID" || status === "Pending") {
+          counts.pending++;
+        }
       });
+
       setStatsData(counts);
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, [userId]);
 
