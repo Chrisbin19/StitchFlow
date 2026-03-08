@@ -24,23 +24,48 @@ export default function TailorStats({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
+
+    // FIX 1: Changed "assignedTo" to "tailorId"
+    // FIX 2: Added "STITCHING_COMPLETED" to the query list
     const q = query(
       collection(db, "orders"),
-      where("assignedTo", "==", userId),
-      where("status", "in", ["Ready_For_Cutting", "In_Sewing", "Quality_Check", "Alteration_Needed", "NEEDS_ALTERATION"])
+      where("tailorId", "==", userId),
+      where("status", "in", [
+        "Ready_For_Cutting",
+        "In_Sewing",
+        "Quality_Check",
+        "STITCHING_COMPLETED",
+        "Alteration_Needed",
+        "NEEDS_ALTERATION"
+      ])
     );
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newCounts = snapshot.docs.reduce((acc, doc) => {
         const status = doc.data().status;
+
         acc.total += 1;
-        if (["In_Sewing", "Ready_For_Cutting"].includes(status)) acc.inProgress += 1;
-        if (status === "Quality_Check") acc.qcPending += 1;
-        if (["Alteration_Needed", "NEEDS_ALTERATION"].includes(status)) acc.fixNeeded += 1;
+
+        if (["In_Sewing", "Ready_For_Cutting"].includes(status)) {
+          acc.inProgress += 1;
+        }
+
+        // FIX 3: Make sure STITCHING_COMPLETED counts towards the "Pending QC" card
+        if (["Quality_Check", "STITCHING_COMPLETED"].includes(status)) {
+          acc.qcPending += 1;
+        }
+
+        if (["Alteration_Needed", "NEEDS_ALTERATION"].includes(status)) {
+          acc.fixNeeded += 1;
+        }
+
         return acc;
       }, { total: 0, inProgress: 0, qcPending: 0, fixNeeded: 0 });
+
       setCounts(newCounts);
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, [userId]);
 
