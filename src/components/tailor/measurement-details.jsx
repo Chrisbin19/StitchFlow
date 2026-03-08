@@ -6,6 +6,65 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { Scissors, User, Package, ImageIcon, Link2, Ruler, Save, CheckCircle2 } from "lucide-react";
 
+const SectH = ({ icon: I, title }) => (
+  <div className="flex items-center gap-2 mb-3">
+    <I className="w-3.5 h-3.5" style={{ color: 'var(--adm-text-sm)' }} />
+    <span style={{ fontSize: '0.70rem', letterSpacing: '0.12em', fontWeight: 600, textTransform: 'uppercase', color: 'var(--adm-text-xs)' }}>
+      {title}
+    </span>
+  </div>
+);
+
+const Lbl = ({ text }) => (
+  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 500, color: 'var(--adm-text-md)', marginBottom: 6 }}>
+    {text}
+  </label>
+);
+
+const Input = ({ hasErr, ...props }) => (
+  <input style={{
+    width: '100%', height: 42, padding: '0 14px', borderRadius: 8, fontSize: '0.9rem',
+    background: 'var(--adm-input-bg)', color: 'var(--adm-text)',
+    border: `1.5px solid ${hasErr ? 'var(--adm-red)' : 'var(--adm-border)'}`,
+    outline: 'none', transition: 'box-shadow 200ms ease, border 200ms ease'
+  }}
+    onFocus={e => {
+      e.currentTarget.style.borderColor = 'var(--adm-violet-c)';
+      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.12)';
+    }}
+    onBlur={e => {
+      e.currentTarget.style.borderColor = hasErr ? 'var(--adm-red)' : 'var(--adm-border)';
+      e.currentTarget.style.boxShadow = 'none';
+    }}
+    {...props} />
+);
+
+const Select = ({ ...props }) => (
+  <div className="relative">
+    <select style={{
+      width: '100%', height: 42, padding: '0 32px 0 14px', borderRadius: 8, fontSize: '0.9rem',
+      background: 'var(--adm-input-bg)', color: 'var(--adm-text)', border: '1.5px solid var(--adm-border)',
+      outline: 'none', transition: 'box-shadow 200ms ease, border 200ms ease', appearance: 'none'
+    }}
+      onFocus={e => {
+        e.currentTarget.style.borderColor = 'var(--adm-violet-c)';
+        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.12)';
+      }}
+      onBlur={e => {
+        e.currentTarget.style.borderColor = 'var(--adm-border)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+      {...props}>
+      {props.children}
+    </select>
+    <div className="absolute right-3 top-0 h-full flex items-center pointer-events-none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--adm-text-xs)' }}>
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </div>
+  </div>
+);
+
 export default function MeasurementDetails({ userId }) {
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -83,67 +142,26 @@ export default function MeasurementDetails({ userId }) {
     }
   };
 
-  const SectH = ({ icon: I, title }) => (
-    <div className="flex items-center gap-2 mb-3">
-      <I className="w-3.5 h-3.5" style={{ color: 'var(--adm-text-sm)' }} />
-      <span style={{ fontSize: '0.70rem', letterSpacing: '0.12em', fontWeight: 600, textTransform: 'uppercase', color: 'var(--adm-text-xs)' }}>
-        {title}
-      </span>
-    </div>
-  );
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      const target = e.target;
+      if (target.tagName.toLowerCase() === 'textarea') return;
 
-  const Lbl = ({ text }) => (
-    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 500, color: 'var(--adm-text-md)', marginBottom: 6 }}>
-      {text}
-    </label>
-  );
+      e.preventDefault();
+      const form = document.getElementById("new-order-ticket-form");
+      if (!form) return;
 
-  const Input = ({ hasErr, ...props }) => (
-    <input style={{
-      width: '100%', height: 42, padding: '0 14px', borderRadius: 8, fontSize: '0.9rem',
-      background: 'var(--adm-input-bg)', color: 'var(--adm-text)',
-      border: `1.5px solid ${hasErr ? 'var(--adm-red)' : 'var(--adm-border)'}`,
-      outline: 'none', transition: 'box-shadow 200ms ease, border 200ms ease'
-    }}
-      onFocus={e => {
-        e.currentTarget.style.borderColor = 'var(--adm-violet-c)';
-        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.12)';
-      }}
-      onBlur={e => {
-        e.currentTarget.style.borderColor = hasErr ? 'var(--adm-red)' : 'var(--adm-border)';
-        e.currentTarget.style.boxShadow = 'none';
-      }}
-      {...props} />
-  );
+      const elements = Array.from(form.querySelectorAll('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'));
+      const currentIndex = elements.indexOf(target);
 
-  const Select = ({ ...props }) => (
-    <div className="relative">
-      <select style={{
-        width: '100%', height: 42, padding: '0 32px 0 14px', borderRadius: 8, fontSize: '0.9rem',
-        background: 'var(--adm-input-bg)', color: 'var(--adm-text)', border: '1.5px solid var(--adm-border)',
-        outline: 'none', transition: 'box-shadow 200ms ease, border 200ms ease', appearance: 'none'
-      }}
-        onFocus={e => {
-          e.currentTarget.style.borderColor = 'var(--adm-violet-c)';
-          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.12)';
-        }}
-        onBlur={e => {
-          e.currentTarget.style.borderColor = 'var(--adm-border)';
-          e.currentTarget.style.boxShadow = 'none';
-        }}
-        {...props}>
-        {props.children}
-      </select>
-      <div className="absolute right-3 top-0 h-full flex items-center pointer-events-none">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--adm-text-xs)' }}>
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </div>
-    </div>
-  );
+      if (currentIndex > -1 && currentIndex < elements.length - 1) {
+        elements[currentIndex + 1].focus();
+      }
+    }
+  };
 
   return (
-    <div style={{
+    <div id="new-order-ticket-form" onKeyDown={handleKeyDown} style={{
       borderRadius: 14, border: '1px solid var(--adm-border)',
       background: 'var(--adm-card)', boxShadow: 'var(--adm-shadow)', overflow: 'hidden', position: 'relative'
     }}>
