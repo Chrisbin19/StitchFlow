@@ -59,7 +59,7 @@ export function TasksList() {
                 padding: '14px 16px',
                 borderRadius: 10,
                 border: '1px solid var(--adm-border)',
-                background: isHovered ? '#2A2620' : (task.completed ? 'var(--adm-card-alt)' : 'var(--adm-badge)'),
+                background: isHovered ? 'rgba(16,185,129,0.06)' : (task.completed ? 'var(--adm-card-alt)' : 'var(--adm-badge)'),
                 borderLeft: isHovered ? `3px solid ${chip.accent}` : '1px solid var(--adm-border)',
                 transform: isHovered ? 'translateY(-1px)' : 'translateY(0)',
                 boxShadow: isHovered ? 'var(--adm-shadow-d)' : 'none',

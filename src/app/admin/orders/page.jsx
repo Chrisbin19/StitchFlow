@@ -8,7 +8,7 @@ import { db } from "@/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import {
   Search, Filter, Calendar, Scissors,
-  ChevronDown, X, Check
+  ChevronDown, X, Check, Download
 } from 'lucide-react';
 
 // UI Components
@@ -37,6 +37,7 @@ export default function OrdersPage() {
   // NEW: Filter States
   const [selectedGarment, setSelectedGarment] = useState("All");
   const [paymentStatus, setPaymentStatus] = useState("All");
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
   const router = useRouter();
 
@@ -94,13 +95,33 @@ export default function OrdersPage() {
       );
     }
 
+    // Filter by Date Range
+    if (dateRange.start) {
+      const startDate = new Date(dateRange.start);
+      result = result.filter(o => {
+        if (!o.createdAt) return false;
+        const orderDate = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+        return orderDate >= startDate;
+      });
+    }
+    if (dateRange.end) {
+      const endDate = new Date(dateRange.end);
+      endDate.setHours(23, 59, 59, 999);
+      result = result.filter(o => {
+        if (!o.createdAt) return false;
+        const orderDate = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+        return orderDate <= endDate;
+      });
+    }
+
     setFilteredOrders(result);
-  }, [orders, searchQuery, activeTab, selectedGarment, paymentStatus]);
+  }, [orders, searchQuery, activeTab, selectedGarment, paymentStatus, dateRange]);
 
   const clearFilters = () => {
     setSelectedGarment("All");
     setPaymentStatus("All");
     setSearchQuery("");
+    setDateRange({ start: "", end: "" });
   };
 
   const getStatusBadge = (status) => {
@@ -138,6 +159,53 @@ export default function OrdersPage() {
     return null;
   }
 
+  const handleExportCSV = () => {
+    if (filteredOrders.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    // Create CSV Headers
+    const headers = [
+      "Order ID", "Customer Name", "Phone", "Garment Type",
+      "Status", "Total Price", "Advance Paid", "Balance Amount",
+      "Delivery Date", "Created At"
+    ];
+
+    // Create CSV Rows
+    const csvRows = [headers.join(",")];
+
+    filteredOrders.forEach(order => {
+      const deliveryDate = order.workflow?.deliveryDate ? new Date(order.workflow.deliveryDate).toLocaleDateString() : 'N/A';
+      const createdDate = order.createdAt ? (order.createdAt.toDate ? order.createdAt.toDate().toLocaleDateString() : new Date(order.createdAt).toLocaleDateString()) : 'N/A';
+
+      const row = [
+        order.id,
+        `"${order.customer?.name || ''}"`,
+        `"${order.customer?.phone || ''}"`,
+        order.product?.dressType || 'N/A',
+        order.status,
+        order.financial?.totalPrice || 0,
+        order.financial?.advancePaid || 0,
+        order.financial?.balanceAmount || 0,
+        deliveryDate,
+        createdDate
+      ];
+      csvRows.push(row.join(","));
+    });
+
+    // Generate and Trigger Download
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `StitchFlow_Orders_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/50 p-8 font-sans">
 
@@ -148,8 +216,8 @@ export default function OrdersPage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight italic">StitchFlow Registry</h1>
           <p className="text-slate-500 text-sm mt-1 font-medium">Manage and track all tailoring jobs.</p>
         </div>
-        <Button onClick={() => router.push('/tailor')} className="bg-indigo-600 hover:bg-indigo-700">
-          <Scissors className="w-4 h-4 mr-2" /> New Measurement
+        <Button onClick={handleExportCSV} className="bg-indigo-600 hover:bg-indigo-700">
+          <Download className="w-4 h-4 mr-2" /> Export to CSV
         </Button>
       </div>
 
@@ -221,15 +289,54 @@ export default function OrdersPage() {
             </PopoverContent>
           </Popover>
 
-          <Button variant="outline" size="sm" className="text-slate-600 border-slate-200">
-            <Calendar className="w-4 h-4 mr-2" /> Date Range
-          </Button>
+          {/* DATE RANGE POPOVER */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="text-slate-600 border-slate-200 relative">
+                <Calendar className="w-4 h-4 mr-2" />
+                Date Range
+                {(dateRange.start || dateRange.end) && (
+                  <span className="ml-2 w-2 h-2 bg-indigo-600 rounded-full"></span>
+                )}
+                <ChevronDown className="w-3 h-3 ml-2 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-4" align="end">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-bold text-sm">Date Filter</h4>
+                  <Button variant="ghost" size="sm" onClick={() => setDateRange({ start: "", end: "" })} className="h-7 px-2 text-xs text-indigo-600">Reset</Button>
+                </div>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">From</label>
+                    <Input
+                      type="date"
+                      value={dateRange.start}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">To</label>
+                    <Input
+                      type="date"
+                      value={dateRange.end}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
       {/* ACTIVE FILTER BADGES (Visual helper for user) */}
-      {(selectedGarment !== "All" || paymentStatus !== "All") && (
-        <div className="flex gap-2 mb-4">
+      {(selectedGarment !== "All" || paymentStatus !== "All" || dateRange.start || dateRange.end) && (
+        <div className="flex flex-wrap gap-2 mb-4">
           {selectedGarment !== "All" && (
             <Badge variant="secondary" className="bg-indigo-50 text-indigo-700">
               Type: {selectedGarment} <X className="w-3 h-3 ml-2 cursor-pointer" onClick={() => setSelectedGarment("All")} />
@@ -238,6 +345,12 @@ export default function OrdersPage() {
           {paymentStatus !== "All" && (
             <Badge variant="secondary" className="bg-indigo-50 text-indigo-700">
               Payment: {paymentStatus} <X className="w-3 h-3 ml-2 cursor-pointer" onClick={() => setPaymentStatus("All")} />
+            </Badge>
+          )}
+          {(dateRange.start || dateRange.end) && (
+            <Badge variant="secondary" className="bg-indigo-50 text-indigo-700">
+              Date: {dateRange.start || "Any"} - {dateRange.end || "Any"}
+              <X className="w-3 h-3 ml-2 cursor-pointer" onClick={() => setDateRange({ start: "", end: "" })} />
             </Badge>
           )}
         </div>

@@ -194,14 +194,7 @@ export function Header() {
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="relative h-0.5" style={{ background: 'var(--adm-divider)' }}>
-          <div className="absolute left-0 top-0 h-full rounded-r-full"
-            style={{
-              width: '28%', background: 'linear-gradient(90deg,var(--adm-emerald),#34d399)',
-              boxShadow: '0 0 8px rgba(5,150,105,0.4)', transition: 'width 700ms ease'
-            }} />
-        </div>
+
       </header>
     </>
   );
