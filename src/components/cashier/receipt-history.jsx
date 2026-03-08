@@ -60,6 +60,40 @@ export default function ReceiptHistory() {
 
   const cardShell = { borderRadius: 16, border: '1px solid var(--cf-border)', background: 'var(--cf-card)', boxShadow: 'var(--cf-shadow)', overflow: 'hidden' };
 
+  const handleExport = () => {
+    if (receipts.length === 0) {
+      alert("No receipts to export");
+      return;
+    }
+
+    const headers = ["Order ID", "Customer", "Amount", "Mode", "Type", "Collected By", "Date", "Time"];
+    const csvRows = [headers.join(",")];
+
+    receipts.forEach(r => {
+      const row = [
+        r.orderId,
+        `"${r.customer}"`,
+        r.amount,
+        r.mode,
+        r.type,
+        `"${r.collectedBy}"`,
+        r.date,
+        r.time
+      ];
+      csvRows.push(row.join(","));
+    });
+
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `StitchFlow_Receipts_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div style={cardShell}>
       {/* Header */}
@@ -76,7 +110,9 @@ export default function ReceiptHistory() {
             </span>
           )}
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
           style={{ color: 'var(--cf-text-sm)', border: '1px solid var(--cf-border)', background: 'transparent' }}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--cf-badge)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}

@@ -218,15 +218,17 @@ export default function CashierHeader() {
             <CashierNotificationBell onCollect={(order) => setSelectedOrder(order)} />
 
             {/* Settings */}
-            <button
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-              style={{ color: 'var(--cf-text-sm)' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--cf-divider)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              title="Settings"
-            >
-              <Settings2 className="w-4 h-4" />
-            </button>
+            <Link href="/cashier/profile">
+              <button
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer"
+                style={{ color: 'var(--cf-text-sm)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--cf-divider)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                title="Settings"
+              >
+                <Settings2 className="w-4 h-4" />
+              </button>
+            </Link>
 
             {/* Avatar */}
             <div

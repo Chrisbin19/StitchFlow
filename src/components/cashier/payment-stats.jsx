@@ -48,7 +48,10 @@ export default function PaymentStats() {
       snap.docs.forEach(d => { total += d.data().financial?.advanceAmount || 0; });
       setTotalPending(total);
     });
-    const paidQ = query(collection(db, "orders"), where("status", "==", "ADVANCE_PAID"));
+
+    // LOGIC FIX: Changed "==" "ADVANCE_PAID" to "!=" "PAYMENT_PENDING"
+    // This ensures we catch payments even if the order moved to STITCHING_COMPLETED etc.
+    const paidQ = query(collection(db, "orders"), where("status", "!=", "PAYMENT_PENDING"));
     const unsubPaid = onSnapshot(paidQ, (snap) => {
       const today = new Date(); today.setHours(0, 0, 0, 0);
       let count = 0, col = 0;
@@ -60,6 +63,7 @@ export default function PaymentStats() {
       });
       setPaidTodayCount(count); setTodayCollection(col);
     });
+
     return () => { unsubPending(); unsubPaid(); };
   }, []);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAuth } from '@/context/AuthContext';
@@ -16,6 +16,14 @@ export default function EditProfileForm() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
+
+    // Update state when userData becomes available via AuthContext
+    useEffect(() => {
+        if (userData) {
+            setName(userData.name || '');
+            setPhone(userData.phone || '');
+        }
+    }, [userData]);
 
     const handleSave = async (e) => {
         e.preventDefault();

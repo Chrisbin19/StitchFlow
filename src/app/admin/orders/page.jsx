@@ -8,7 +8,7 @@ import { db } from "@/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import {
   Search, Filter, Calendar, Scissors,
-  ChevronDown, X, Check, Download
+  ChevronDown, X, Check, Download, ClipboardList
 } from 'lucide-react';
 
 // UI Components
@@ -211,15 +211,30 @@ export default function OrdersPage() {
 
 
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight italic">StitchFlow Registry</h1>
-          <p className="text-slate-500 text-sm mt-1 font-medium">Manage and track all tailoring jobs.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
+              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.25)'
+            }}>
+            <ClipboardList className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-[2.2rem] font-black text-slate-900 tracking-tight leading-none mb-1">
+              StitchFlow Registry
+            </h1>
+            <p className="text-slate-500 text-[14px] font-medium">
+              Manage, filter, and track all tailoring jobs effectively.
+            </p>
+          </div>
         </div>
-        <Button onClick={handleExportCSV} className="bg-indigo-600 hover:bg-indigo-700">
+        <Button onClick={handleExportCSV} className="bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all hover:scale-105 h-10 px-4">
           <Download className="w-4 h-4 mr-2" /> Export to CSV
         </Button>
       </div>
+
+      <div className="mb-6 w-full h-[1px] bg-gradient-to-r from-slate-200 to-transparent" />
 
       {/* CONTROLS SECTION */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 space-y-4 md:space-y-0 md:flex justify-between items-center">
