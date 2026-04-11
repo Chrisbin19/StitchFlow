@@ -3,9 +3,7 @@
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)
-![Last Commit](https://img.shields.io/github/last-commit/Chrisbin19/StitchFlow)
-![Stars](https://img.shields.io/github/stars/Chrisbin19/StitchFlow?style=social)
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blueviolet)](https://stitch-flow.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blueviolet)](https://stitch-flow-azure.vercel.app/)
 
 ## Table of Contents
 - [Problem Statement](#problem-statement)
