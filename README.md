@@ -249,7 +249,7 @@ We welcome structural improvements, bug fixes, and feature integrations.
 
 Chrisbin
 - **GitHub:** [Chrisbin19](https://github.com/Chrisbin19)
-- **LinkedIn:** [Chrisbin's Network](https://linkedin.com/in/chrisbin19)
-- **Email:** [EMAIL_ADDRESS]
+- **LinkedIn:** [Chrisbin Sibi](https://linkedin.com/in/chrisbin19)
+- **Email:** [chrisbinsibi19@gmail.com](mailto:chrisbinsibi19@gmail.com)
 
 If this project helped you architect modern microservice infrastructure, give it a ⭐!
